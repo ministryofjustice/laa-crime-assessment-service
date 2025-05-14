@@ -1,6 +1,12 @@
-FROM amazoncorretto:21
-RUN mkdir -p /opt/crime-assessment-service/
-WORKDIR /opt/crime-assessment-service/
-COPY ./build/libs/crime-assessment-service.jar /opt/crime-assessment-service/app.jar
+FROM amazoncorretto:21-alpine
+
+RUN addgroup -S appgroup && adduser -u 1001 -S appuser -G appgroup
+
+WORKDIR /opt/crime-assessment-service
+COPY build/libs/crime-assessment-service.jar app.jar
+RUN chown -R appuser:appgroup /opt/crime-assessment-service
+
+USER 1001
+
 EXPOSE 8091
 ENTRYPOINT ["java","-jar","app.jar"]
