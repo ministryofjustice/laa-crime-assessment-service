@@ -49,4 +49,8 @@ tasks.named('test') {
 
 jacocoTestReport {
     dependsOn test
+    doLast {
+        def reportPath = reports.html.outputLocation.get().asFile.absolutePath
+        println("JaCoCo report available at: file://$reportPath/index.html")
+    }
 }
