@@ -5,6 +5,7 @@ plugins {
     id 'com.adarshr.test-logger' version '4.0.0'
     id "com.github.ben-manes.versions" version "0.52.0"
     id 'jacoco'
+    id 'com.diffplug.spotless' version '7.0.3'
 }
 
 group = "uk.gov.justice.laa.crime"
@@ -52,5 +53,19 @@ jacocoTestReport {
     doLast {
         def reportPath = reports.html.outputLocation.get().asFile.absolutePath
         println("JaCoCo report available at: file://$reportPath/index.html")
+    }
+}
+
+spotless {
+    java {
+        target project.fileTree(project.rootDir) {
+            include 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+            exclude '**/build/**'
+        }
+        importOrder()
+        removeUnusedImports()
+        cleanthat().sourceCompatibility('21')
+        googleJavaFormat().aosp()
+        formatAnnotations()
     }
 }
