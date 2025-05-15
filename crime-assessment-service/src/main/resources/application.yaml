@@ -1,6 +1,18 @@
 server:
   port: 8091
-  
+
+management:
+  server:
+    port: 8092
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  tracing:
+    propagation:
+      type: w3c,b3
+    enabled: true
+    
 springdoc:
   packagesToScan: uk.gov.justice.laa.crime.assessmentservice
   api-docs:

@@ -8,5 +8,5 @@ RUN chown -R appuser:appgroup /opt/crime-assessment-service
 
 USER 1001
 
-EXPOSE 8091
+EXPOSE 8091 8092
 ENTRYPOINT ["java","-jar","app.jar"]
