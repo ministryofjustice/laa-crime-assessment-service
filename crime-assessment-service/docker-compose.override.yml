@@ -1,0 +1,6 @@
+services:
+  app:
+    environment:
+      - LOG_LEVEL=DEBUG
+    env_file:
+      - app.env
