@@ -1,2 +1,10 @@
 server:
   port: 8091
+  
+springdoc:
+  packagesToScan: uk.gov.justice.laa.crime.assessmentservice
+  api-docs:
+    path: /open-api/api-docs
+  swagger-ui:
+    path: /open-api/swagger-ui
+    operationsSorter: method
