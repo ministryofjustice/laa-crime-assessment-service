@@ -28,7 +28,7 @@ service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 8499
+  port: 8091
 
 # TODO ingress config
 ingress:
@@ -71,7 +71,7 @@ actuator:
     path: /actuator/prometheus
   health:
     path: /actuator/health
-  port: 8510
+  port: 8092
   liveness:
     initialDelaySeconds: 45
     periodSeconds: 10
