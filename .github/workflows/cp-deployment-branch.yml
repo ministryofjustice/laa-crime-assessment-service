@@ -31,12 +31,12 @@ jobs:
         id: build-and-push-image
         run: |
           echo "Building the ear file and Docker image with gradle..."
-          pushd crime-court-message-processor-service
+          pushd crime-assessment-service
           chmod +x ./gradlew
           ./gradlew build
           echo "Building the docker image and tagging it"
-          docker build -t crime-court-message-processor-service .
-          docker tag crime-court-message-processor-service $REGISTRY/$REPOSITORY:$GITHUB_TAG
+          docker build -t crime-assessment-service .
+          docker tag crime-assessment-service $REGISTRY/$REPOSITORY:$GITHUB_TAG
           echo "Pushing the Docker image to $REGISTRY/$REPOSITORY:$GITHUB_TAG"
           docker push $REGISTRY/$REPOSITORY:$GITHUB_TAG
         env:
@@ -67,15 +67,15 @@ jobs:
       - name: Helm deploy to Dev environment
         id: deploy-to-dev
         run: |
-          cd helm_deploy/crime-court-message-processor-service
-          helm upgrade crime-court-message-processor-service -f values-dev.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/crime-assessment-service
+          helm upgrade crime-assessment-service -f values-dev.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
-      - name: Notify Slack channel
-        uses: ./.github/actions/slack-notify-composite-action
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+#      - name: Notify Slack channel
+#        uses: ./.github/actions/slack-notify-composite-action
+#        with:
+#          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   deploy-to-test:
     name: deploy-to-test
@@ -99,15 +99,15 @@ jobs:
       - name: Helm deploy to Test environment
         id: deploy-to-test
         run: |
-          cd helm_deploy/crime-court-message-processor-service
-          helm upgrade crime-court-message-processor-service -f values-test.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/crime-assessment-service
+          helm upgrade crime-assessment-service -f values-test.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
-      - name: Notify Slack channel
-        uses: ./.github/actions/slack-notify-composite-action
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+#      - name: Notify Slack channel
+#        uses: ./.github/actions/slack-notify-composite-action
+#        with:
+#          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   deploy-to-uat:
     name: deploy-to-uat
@@ -131,12 +131,12 @@ jobs:
       - name: Helm deploy to UAT environment
         id: deploy-to-uat
         run: |
-          cd helm_deploy/crime-court-message-processor-service
-          helm upgrade crime-court-message-processor-service -f values-uat.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/crime-assessment-service
+          helm upgrade crime-assessment-service -f values-uat.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
-      - name: Notify Slack channel
-        uses: ./.github/actions/slack-notify-composite-action
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+#      - name: Notify Slack channel
+#        uses: ./.github/actions/slack-notify-composite-action
+#        with:
+#          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}

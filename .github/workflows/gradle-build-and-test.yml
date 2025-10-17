@@ -23,7 +23,7 @@ jobs:
 
       - name: Build and test
         run: |
-          pushd crime-court-message-processor-service
+          pushd crime-assessment-service
           chmod +x ./gradlew
           ./gradlew build
         env:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Test coverage verification
         run: |
-          pushd crime-court-message-processor-service
+          pushd crime-assessment-service
           chmod +x ./gradlew
           ./gradlew jacocoTestCoverageVerification
 
@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: checkstyle-report
-          path: crime-court-message-processor-service/build/reports/checkstyle
+          path: crime-assessment-service/build/reports/checkstyle
           retention-days: 14
 
       - name: Upload test report
@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-report
-          path: crime-court-message-processor-service/build/reports/tests
+          path: crime-assessment-service/build/reports/tests
           retention-days: 14
 
       - name: Upload jacoco coverage report
@@ -56,7 +56,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report
-          path: crime-court-message-processor-service/build/reports/jacoco/test
+          path: crime-assessment-service/build/reports/jacoco/test
           retention-days: 14
 
   vulnerability-scan-app:
