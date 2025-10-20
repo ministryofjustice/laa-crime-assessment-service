@@ -1,4 +1,4 @@
-name: Build and Deploy CCMP to CP
+name: Build and Deploy the Crime Assessment Service to CP
 
 permissions:
   id-token: write
