@@ -98,13 +98,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build app jar with gradle
-        run: ./gradlew build
+        run: |
+          pushd crime-assessment-service
+          chmod +x ./gradlew
+          ./gradlew build
 
       - name: Build a Docker image
-        run: docker build -t spring-boot-microservice:scan .
+        run: |
+          pushd crime-assessment-service
+          docker build -t crime-assessment-service:scan .
 
       - name: Run Snyk to check Docker image for vulnerabilities
         uses: snyk/actions/docker@master
         with:
-          image: spring-boot-microservice:scan
+          image: crime-assessment-service:scan
           args: --file=Dockerfile --severity-threshold=high
