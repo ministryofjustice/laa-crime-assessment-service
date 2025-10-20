@@ -110,6 +110,7 @@ jobs:
 
       - name: Run Snyk to check Docker image for vulnerabilities
         uses: snyk/actions/docker@master
+        continue-on-error: true # To make sure that SARIF upload gets called
         with:
           image: crime-assessment-service:scan
           args: --file=crime-assessment-service/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif
