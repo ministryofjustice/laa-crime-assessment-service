@@ -104,9 +104,7 @@ jobs:
           ./gradlew build
 
       - name: Build a Docker image
-        run: |
-          pushd crime-assessment-service
-          docker build -t crime-assessment-service:scan .
+        run: docker build -t crime-assessment-service:scan .
 
       - name: Run Snyk to check Docker image for vulnerabilities
         uses: snyk/actions/docker@master
