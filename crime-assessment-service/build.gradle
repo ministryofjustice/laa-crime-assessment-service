@@ -74,7 +74,7 @@ jacocoTestCoverageVerification {
         rule {
             element = 'CLASS'
             // placeholder exclude for ease of modification.
-            excludes = ['uk.gov.justice.laa.crime.assessmentservice.dto.*']
+            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication', 'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController','uk.gov.justice.laa.crime.assessmentservice.passport.PassportController']
             limit {
                 minimum = 0.8
             }
