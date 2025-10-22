@@ -2,6 +2,8 @@ services:
   app:
     environment:
       - LOG_LEVEL=DEBUG
+      - SENTRY_ENV=development
+      - SENTRY_SAMPLE_RATE=0.0
     env_file:
       - app.env
     ports:
