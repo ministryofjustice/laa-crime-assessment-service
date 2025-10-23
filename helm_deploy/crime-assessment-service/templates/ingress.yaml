@@ -8,7 +8,7 @@ apiVersion: extensions/v1beta1
   {{- end }}
 kind: Ingress
 metadata:
-  name: {{ include "crime-assessment-service.fullname" . }}
+  name: crime-assessment-service-ingress
   labels:
     {{- include "crime-assessment-service.labels" . | nindent 4 }}
   annotations:
