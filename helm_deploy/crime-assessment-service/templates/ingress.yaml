@@ -12,10 +12,8 @@ metadata:
   labels:
     {{- include "crime-assessment-service.labels" . | nindent 4 }}
   annotations:
-    {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-    {{- include "crime-assessment-service.ingress" . | nindent 4 }}
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/set-identifier: "crime-assessment-service-ingress-laa-crime-assessment-service-dev-green"
 spec:
   {{- with .Values.ingress.className }}
   ingressClassName: {{ . }}
