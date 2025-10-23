@@ -9,7 +9,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: crime-assessment-service-ingress
-  namespace: {{ $.Values.ingress.environmentName}}
+  namespace: {{ .Values.ingress.environmentName}}
   labels:
     {{- include "crime-assessment-service.labels" . | nindent 4 }}
   annotations:
