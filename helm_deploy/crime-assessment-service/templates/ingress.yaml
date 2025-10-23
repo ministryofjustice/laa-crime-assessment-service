@@ -14,7 +14,7 @@ metadata:
   {{- with .Values.ingress.annotations }}
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
-    external-dns.alpha.kubernetes.io/set-identifier: {{ $fullName }}-{{ $.Values.ingress.environmentName}}-green
+    external-dns.alpha.kubernetes.io/set-identifier: "{{ $fullName }}-{{ .Release.Namespace }}-green"
   {{- end }}
 spec:
   {{- with .Values.ingress.className }}
