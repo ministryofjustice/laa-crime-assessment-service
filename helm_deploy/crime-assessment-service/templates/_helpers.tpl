@@ -68,6 +68,6 @@ Create ingress configuration
 {{- $internalAllowlistSourceRange := (lookup "v1" "Secret" .Release.Namespace "crime-assessment-service-env-variables").data.INTERNAL_ALLOWLIST_SOURCE_RANGE | b64dec }}
 {{- if $internalAllowlistSourceRange }}
   nginx.ingress.kubernetes.io/whitelist-source-range: {{ $internalAllowlistSourceRange }}
-  external-dns.alpha.kubernetes.io/set-identifier: {{ include "crime-assessment-service.fullname" . }}-{{ $.Values.ingress.environmentName}}-green
+{{/*  external-dns.alpha.kubernetes.io/set-identifier: {{ include "crime-assessment-service.fullname" . }}-{{ $.Values.ingress.environmentName}}-green*/}}
 {{- end }}
 {{- end }}
