@@ -1,10 +1,21 @@
+{{- $fullName := include "crime-assessment-service.fullname" . -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
+  {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+  {{- else -}}
+apiVersion: extensions/v1beta1
+  {{- end }}
 kind: Ingress
 metadata:
-  name: crime-assessment-service-ingress
+  name: {{ $fullName }}
+  labels:
+    {{- include "crime-assessment-service.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
-    external-dns.alpha.kubernetes.io/set-identifier: "crime-assessment-service-ingress-laa-crime-assessment-service-dev-green"
+    external-dns.alpha.kubernetes.io/set-identifier: {{ $fullName }}-{{ $.Values.ingress.environmentName}}-green
+  {{- end }}
 spec:
   {{- with .Values.ingress.className }}
   ingressClassName: {{ . }}
@@ -31,21 +42,21 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "crime-assessment-service.fullname" $ }}
+                name: {{ $fullName }}
                 port:
                   number: {{ $.Values.service.port }}
           - path: {{ $.Values.actuator.health.path }}
             pathType: "Exact"
             backend:
               service:
-                name: {{ include "crime-assessment-service.fullname" $ }}
+                name: {{ $fullName }}
                 port:
                   number: {{ $.Values.actuator.port }}
           - path: {{ $.Values.actuator.metrics.path }}
             pathType: "Exact"
             backend:
               service:
-                name: {{ include "crime-assessment-service.fullname" $ }}
+                name: {{ $fullName }}
                 port:
                   number: {{ $.Values.actuator.port }}
           {{- end }}
