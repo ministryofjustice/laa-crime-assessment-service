@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset/01-create-ioj-appeal-schema.sql
+  - include:
+      file: db/changelog/changeset/02-create-ioj-appeal-table.sql
+  - include:
+      file: db/changelog/changeset/03-create-ioj-appeal-event-table.sql

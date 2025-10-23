@@ -5,3 +5,19 @@ services:
     ports:
       - "8091:8091"
       - "8092:8092"
+    depends_on:
+      - postgres
+        
+  postgres:
+    image: postgres:18.0
+    ports:
+      - "5432:5432"
+    volumes:
+       - pgdata18:/var/lib/postgresql/18/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata18:
