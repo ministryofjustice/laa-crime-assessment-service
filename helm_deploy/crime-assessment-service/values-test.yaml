@@ -33,14 +33,14 @@ service:
 # TODO ingress config
 ingress:
   enabled: true
-  environmentName: laa-crime-court-message-processor-test
+  environmentName: laa-crime-assessment-service-test
   className: default
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
   hosts:
-    - host: laa-crime-court-message-processor-test.apps.live.cloud-platform.service.justice.gov.uk
+    - host: laa-crime-assessment-service-test.apps.live.cloud-platform.service.justice.gov.uk
       paths:
         - path: /
           pathType: "Prefix"
