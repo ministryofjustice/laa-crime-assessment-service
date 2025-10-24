@@ -89,6 +89,66 @@ More information can be found [here](https://docs.spring.io/spring-modulith/refe
 
 The `java/uk/gov/justice/laa/crime/assessmentservice/ModularityTests.java` tests will ensure that you are not accessing files outside of the proper scope. These will automatically be ran as part of the gradle build.
 
+## CI/CD Pipeline
+
+
+[GitHub Actions](https://github.com/ministryofjustice/laa-crime-assessment-service/actions) are used to manage the CI/CD pipeline for this application.
+
+This table shows the automated workflows that are configured for this application.
+
+
+| Workflow                                                                                                             | Triggered On                                                                 | Actions                                                                                                                                                                                                        |
+|----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Gradle build and test<br/>[gradle-build-and-test.yaml](.github/workflows/gradle-build-and-test.yaml)                 | * Push to `main` branch<br/>* Push to a PR                                   | 1. Run the Gradle Build.  Produce JUnit and test coverage reports<br/>2. Run Snyk scan on the application<br/>3. Run Synk scan on the docker image.<br/>4. Uploads the results into the Security Tab on Github |
+| CodeQL<br/>[codeql-analysis.yml](.github/workflows/codeql-analysis.yml)                                              | * Push to `main` branch<br/>* Push to a PR<br/>* 05:34 every Saturday        | 1. Perform CodeQL analysis. <br/>2. Perform Dependency analysis.                                                                                                                                               |
+| Build and Deploy to Non-Prod Environments<br/>[cp-deployment-branch.yml](.github/workflows/cp-deployment-branch.yml) | * Push to any branch other than `main`<br/>* Manual invocation via GitHub UI | 1. Build docker image & push to image repository<br/>2. Simultaneously deploy to `dev`, `test` & `uat` upon approval                                                                                           |
+| Build and Deploy Crime Assessment Service to CP<br/>[cp-deployment.yml](.github/workflows/cp-deployment.yml)                             | * Push to `main`<br/>* Manual invocation via GitHub UI                       | 1. Build docker image & push to image repository<br/>2. Deploy to `dev` upon approval<br>3. Simultaneously deploy to `test`, `uat` & `prod` upon approval                                                      |
+
+### Deploying Manually
+
+The application can be deployed manually via the GitHub UI from PR branches or from the `main` branch.
+
+1. Go to the Actions page https://github.com/ministryofjustice/laa-crime-assessment-service/actions
+2. Click on either the `Build and Deploy to Non-Prod Environments` or `Build and Deploy Crime Assessment Service to CP` workflows
+3. Click on the `Run workflow` button
+4. Select the branch to deploy from the dropdown
+5. Click on the `Run workflow` button
+
+### View workflow logs
+
+1. Go to the Actions page https://github.com/ministryofjustice/laa-crime-assessment-service/actions
+2. Click on the workflow in question to show a list of runs
+3. Click on the run you want to view to show the jobs in that run. Any failed jobs will have a red X next to them.
+4. Click on any individual job to show the steps in that job
+5. Drill down in to the individual step to see the logs
+
+
+### Deployment issues
+
+If a deployment fails on the Helm deployment step, it will display a simple error message and exit.
+```text
+Run cd helm_deploy/crime-assessment-service
+Error: UPGRADE FAILED: context deadline exceeded
+Error: Process completed with exit code 1.
+```
+Use these commands to troubleshoot the issue.
+
+* Look at events in the namespace:
+
+  ```kubectl get events -n laa-crime-assessment-service-<env>```
+
+* Find pods in the environment:
+
+  ```kubectl get pods -n laa-crime-assessment-service-<env>```
+
+* Look at the logs for the application:
+
+  ```kubectl logs -n laa-crime-assessment-service-<env> <pod-name>```
+
+* Check the health and information of a pod:
+
+  ```kubectl describe pod -n laa-crime-assessment-service-<env> <pod-name>```
+
 ## Local development
 
 ### Obtaining environment variables for running locally
