@@ -13,8 +13,7 @@ metadata:
     {{- include "crime-assessment-service.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
-    external-dns.alpha.kubernetes.io/aws-weight: "100"
-    external-dns.alpha.kubernetes.io/set-identifier: "{{ $fullName }}-{{ .Release.Namespace }}-green"
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   {{- with .Values.ingress.className }}
