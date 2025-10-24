@@ -36,7 +36,7 @@ ingress:
   environmentName: laa-crime-assessment-service-dev
   className: default
   annotations:
-    external-dns.alpha.kubernetes.io/set-identifier: "ingress-laa-crime-assessment-service-dev-green"
+    external-dns.alpha.kubernetes.io/set-identifier: "laa-crime-assessment-service-laa-crime-assessment-service-dev-green"
     external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
