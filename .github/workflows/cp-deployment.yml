@@ -67,8 +67,8 @@ jobs:
       - name: Helm deploy to Dev environment
         id: deploy-to-dev
         run: |
-          cd helm_deploy/crime-assessment-service
-          helm upgrade crime-assessment-service -f values-dev.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/laa-crime-assessment-service
+          helm upgrade laa-crime-assessment-service -f values-dev.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
@@ -99,8 +99,8 @@ jobs:
       - name: Helm deploy to Test environment
         id: deploy-to-test
         run: |
-          cd helm_deploy/crime-assessment-service
-          helm upgrade crime-assessment-service -f values-test.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/laa-crime-assessment-service
+          helm upgrade laa-crime-assessment-service -f values-test.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
@@ -131,8 +131,8 @@ jobs:
       - name: Helm deploy to UAT environment
         id: deploy-to-uat
         run: |
-          cd helm_deploy/crime-assessment-service
-          helm upgrade crime-assessment-service -f values-uat.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/laa-crime-assessment-service
+          helm upgrade laa-crime-assessment-service -f values-uat.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
@@ -163,8 +163,8 @@ jobs:
       - name: Helm deploy to Production environment
         id: deploy-to-production
         run: |
-          cd helm_deploy/crime-assessment-service
-          helm upgrade crime-assessment-service -f values-prod.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
+          cd helm_deploy/laa-crime-assessment-service
+          helm upgrade laa-crime-assessment-service -f values-prod.yaml . --install --wait --namespace=${KUBE_NAMESPACE} --set image.tag="$GITHUB_TAG"
         env:
           GITHUB_TAG: ${{ github.sha }}
 
