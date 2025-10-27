@@ -18,6 +18,7 @@ spring:
       max-lifetime: 3600000
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: "!test"
 
 server:
   port: 8091
