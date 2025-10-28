@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.5'
+    id 'org.springframework.boot' version '3.5.6'
     id 'com.adarshr.test-logger' version '4.0.0'
     id "com.github.ben-manes.versions" version "0.52.0"
     id 'jacoco'
@@ -41,6 +41,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+
+    // DB
+    implementation "org.postgresql:postgresql"
 
     // Sentry
     implementation platform("io.sentry:sentry-bom:$versions.sentry")
@@ -72,3 +77,17 @@ jacocoTestReport {
         println("JaCoCo report available at: file://$reportPath/index.html")
     }
 }
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            // placeholder exclude for ease of modification.
+            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication', 'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController','uk.gov.justice.laa.crime.assessmentservice.passport.PassportController']
+            limit {
+                minimum = 0.8
+            }
+        }
+    }
+}
+
