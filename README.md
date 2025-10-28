@@ -182,3 +182,16 @@ When you complete a `./gradlew build`, a code coverage report is generated. It w
 ### Gradle Versions Plugin
 
 This plugin will alert you to dependencies that have updates available. It can be ran by running `./gradlew dependencyUpdates`.
+
+## Application Logging and Monitoring
+
+### Sentry
+
+Sentry is a 3rd party application logging and monitoring platform. The platform provides easier 
+searching based on meta-data as well as application monitoring. There are several alert rules 
+configured on Sentry that will push notifications to both the team email and a 
+Slack channel. 
+- In production the sample rate is configured to send all errors to Sentry, and any alerts are sent to 
+the Slack channel `#laa-crime-assessment-alerts-prod`.
+- In the lower environments however we only sample 5% of errors encountered, and any alerts are sent to 
+the Slack channel `#laa-crimeapps-mod-alerts`.
