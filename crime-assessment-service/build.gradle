@@ -14,6 +14,10 @@ java {
     }
 }
 
+def versions = [
+        sentry  : "8.23.0"
+]
+
 repositories {
     mavenCentral()
 }
@@ -39,10 +43,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-validation"
-
+    
     // Database
     implementation 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
+
+    // Sentry
+    implementation platform("io.sentry:sentry-bom:$versions.sentry")
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
+    implementation("io.sentry:sentry-logback")
     
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -6,6 +6,8 @@ services:
       - DATASOURCE_USERNAME=postgres
       - DATASOURCE_PASSWORD=postgres
       - DATASOURCE_DBNAME=crime_assessment_service
+      - SENTRY_ENV=development
+      - SENTRY_SAMPLE_RATE=0.0
     env_file:
       - app.env
     ports:
