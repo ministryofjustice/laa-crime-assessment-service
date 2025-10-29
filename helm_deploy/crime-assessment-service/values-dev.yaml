@@ -48,7 +48,9 @@ ingress:
   externalAnnotations: {}
   hosts:
     - host: laa-crime-assessment-service-dev.apps.live.cloud-platform.service.justice.gov.uk
-      paths: ["/"]
+      paths:
+        - path: /
+          pathType: "Prefix"
   tls: []
 
 
