@@ -34,16 +34,21 @@ service:
 ingress:
   enabled: true
   environmentName: laa-crime-assessment-service-dev
-  className: default
+  className: modsec-non-prod
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/set-identifier: "laa-crime-assessment-service-laa-crime-assessment-service-dev-green"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecAuditEngine On
+      SecRuleEngine DetectionOnly
+      SecDefaultAction "phase:2,pass,log,tag:github_team=laa-crime-apps-team,tag:namespace=laa-crime-assessment-service-dev"
+  externalAnnotations: {}
   hosts:
     - host: laa-crime-assessment-service-dev.apps.live.cloud-platform.service.justice.gov.uk
-      paths:
-        - path: /
-          pathType: "Prefix"
+      paths: ["/"]
   tls: []
 
 
