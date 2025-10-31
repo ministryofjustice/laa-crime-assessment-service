@@ -7,7 +7,6 @@ spring:
     aws:
       region:
         static: eu-west-2
-
   datasource:
     url: jdbc:postgresql://${DATASOURCE_HOST_PORT}/${DATASOURCE_DBNAME}
     username: ${DATASOURCE_USERNAME}
@@ -17,6 +16,9 @@ spring:
       connection-timeout: 30000
       idle-timeout: 60000
       max-lifetime: 3600000
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: "!test"
 
 server:
   port: 8091
@@ -32,7 +34,7 @@ management:
     propagation:
       type: w3c,b3
     enabled: true
-    
+
 springdoc:
   packagesToScan: uk.gov.justice.laa.crime.assessmentservice
   api-docs:

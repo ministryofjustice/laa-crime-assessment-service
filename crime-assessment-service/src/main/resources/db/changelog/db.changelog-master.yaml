@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset/01-create-ioj-appeal-schema.sql
+  - include:
+      file: db/changelog/changeset/02-create-ioj-appeal-table.sql
+  - include:
+      file: db/changelog/changeset/03-create-ioj-appeal-event-table.sql
+  - include:
+      file: db/changelog/changeset/04-seed-test-ioj-appeal-data.sql
+  - include:
+      file: db/changelog/changeset/05-alter-ioj-appeal-table.sql
+  - include:
+      file: db/changelog/changeset/06-alter-ioj-appeal-event-table.sql
+  - include:
+      file: db/changelog/changeset/07-seed-test-ioj-appeal-data.sql
+  - include:
+      file: db/changelog/changeset/08-alter-ioj-appeal-table.sql

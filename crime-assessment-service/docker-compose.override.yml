@@ -2,6 +2,10 @@ services:
   app:
     environment:
       - LOG_LEVEL=DEBUG
+      - DATASOURCE_HOST_PORT=postgres:5432
+      - DATASOURCE_USERNAME=postgres
+      - DATASOURCE_PASSWORD=postgres
+      - DATASOURCE_DBNAME=crime_assessment_service
       - SENTRY_ENV=development
       - SENTRY_SAMPLE_RATE=0.0
     env_file:
@@ -13,3 +17,9 @@ services:
       - "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
       - "-jar"
       - "app.jar"
+        
+  postgres:
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=crime_assessment_service
