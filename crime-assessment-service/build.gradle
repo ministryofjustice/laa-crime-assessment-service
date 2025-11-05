@@ -52,6 +52,9 @@ dependencies {
     implementation platform("io.sentry:sentry-bom:$versions.sentry")
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("io.sentry:sentry-logback")
+
+    // Prometheus
+    implementation "io.micrometer:micrometer-registry-prometheus"
     
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
