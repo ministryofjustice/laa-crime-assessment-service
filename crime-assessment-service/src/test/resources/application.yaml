@@ -25,3 +25,8 @@ logging:
     root: INFO
     liquibase: DEBUG
     org.springframework.liquibase: DEBUG
+
+services:
+  maat-api:
+    base-url: http://localhost:${wiremock.server.port}
+    registrationId: maat-api

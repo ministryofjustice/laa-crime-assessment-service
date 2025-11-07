@@ -6,6 +6,10 @@ Environment variables for service containers
 env:
   - name: AWS_REGION
     value: {{ .Values.aws_region }}
+  - name: MAAT_API_BASE_URL
+    value: {{ .Values.maatApi.baseUrl }}
+  - name: MAAT_API_OAUTH_URL
+    value: {{ .Values.maatApi.oauthUrl }}
   - name: SENTRY_DSN
     valueFrom:
       secretKeyRef:
@@ -38,4 +42,15 @@ env:
         secretKeyRef:
             name: crime-assessment-service-env-variables
             key: DATASOURCE_DBNAME
+  - name: MAAT_API_OAUTH_CLIENT_ID
+    valueFrom:
+        secretKeyRef:
+            name: crime-assessment-service-env-variables
+            key: MAAT_API_OAUTH_CLIENT_ID
+  - name: MAAT_API_OAUTH_CLIENT_SECRET
+    valueFrom:
+        secretKeyRef:
+            name: crime-assessment-service-env-variables
+            key: MAAT_API_OAUTH_CLIENT_SECRET
+
 {{- end -}}
