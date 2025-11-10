@@ -98,3 +98,6 @@ securityContext:
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
+
+jwt:
+  issuerUri: https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_5S2D1DpQO

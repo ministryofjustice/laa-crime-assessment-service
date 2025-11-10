@@ -21,6 +21,8 @@ env:
     value: {{ .Values.sentry.sampleRate | quote }}
   - name: SCOPE_SCHEDULED_TASKS
     value: {{ .Values.scope }}
+  - name: JWT_ISSUER_URI
+    value: {{ .Values.jwt.issuerUri }}
 
   - name: DATASOURCE_USERNAME
     valueFrom:

@@ -19,6 +19,11 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     contexts: "!test"
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI}
 
   security:
     oauth2:
