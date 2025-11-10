@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,9 +22,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class IojAppealController {
 
     @GetMapping(path = "/{id}")
-    @Operation(description = "Retrieve an IOJ Appeal")
+    @Operation(description = "Retrieve an IOJ Appeal by its Assessment Service ID")
     @ApiResponse(responseCode = "501")
     public ResponseEntity<Object> get(@PathVariable int id) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @PostMapping(path = "/{id}")
+    @Operation(description = "Create a new IOJ Appeal record")
+    @ApiResponse(responseCode = "501")
+    public ResponseEntity<Object> create(@PathVariable int id) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @GetMapping(path = "/lookup-by-legacy-id/{id}")
+    @Operation(description = "Retrieve an IOJ Appeal by its legacy MAAT Appeal ID")
+    @ApiResponse(responseCode = "501")
+    public ResponseEntity<Object> getByLegacyId(@PathVariable int id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }
