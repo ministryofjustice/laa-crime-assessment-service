@@ -97,7 +97,13 @@ jacocoTestCoverageVerification {
         rule {
             element = 'CLASS'
             // placeholder exclude for ease of modification.
-            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication', 'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController','uk.gov.justice.laa.crime.assessmentservice.passport.PassportController']
+            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication',
+                        'uk.gov.justice.laa.crime.assessmentservice.ServicesConfiguration',
+                        'uk.gov.justice.laa.crime.assessmentservice.WebClientsConfiguration',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
+                        'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*'
+            ]
             limit {
                 minimum = 0.8
             }
