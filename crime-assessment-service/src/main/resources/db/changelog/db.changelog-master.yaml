@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/changeset/07-seed-test-ioj-appeal-data.sql
   - include:
       file: db/changelog/changeset/08-alter-ioj-appeal-table.sql
+  - include:
+      file: db/changelog/changeset/09-alter-ioj-appeal-table.sql
