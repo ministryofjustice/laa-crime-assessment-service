@@ -16,7 +16,8 @@ java {
 }
 
 def versions = [
-        sentry  : "8.23.0"
+    sentry          : "8.23.0",
+    resilience4j    : "2.3.0"
 ]
 
 repositories {
@@ -44,10 +45,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
     
     // Database
     implementation 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
+
+    // Resilience4j
+    implementation "io.github.resilience4j:resilience4j-reactor:$versions.resilience4j"
+    implementation "io.github.resilience4j:resilience4j-spring-boot3:$versions.resilience4j"
 
     // Sentry
     implementation platform("io.sentry:sentry-bom:$versions.sentry")
@@ -67,8 +73,10 @@ dependencies {
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6"
     
     compileOnly 'org.projectlombok:lombok:1.18.38'
-    
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+    testCompileOnly "org.projectlombok:lombok:1.18.38"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.38"
 }
 
 tasks.named('test') {
@@ -89,7 +97,13 @@ jacocoTestCoverageVerification {
         rule {
             element = 'CLASS'
             // placeholder exclude for ease of modification.
-            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication', 'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController','uk.gov.justice.laa.crime.assessmentservice.passport.PassportController']
+            excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication',
+                        'uk.gov.justice.laa.crime.assessmentservice.ServicesConfiguration',
+                        'uk.gov.justice.laa.crime.assessmentservice.WebClientsConfiguration',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
+                        'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*'
+            ]
             limit {
                 minimum = 0.8
             }

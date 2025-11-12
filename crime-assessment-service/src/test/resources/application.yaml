@@ -25,3 +25,23 @@ logging:
     root: INFO
     liquibase: DEBUG
     org.springframework.liquibase: DEBUG
+
+services:
+  maat-api:
+    base-url: http://localhost:${wiremock.server.port}
+    registrationId: maat-api
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retry-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
+          - org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests
+          - org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
+          - org.springframework.web.reactive.function.client.WebClientResponseException.GatewayTimeout
