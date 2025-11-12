@@ -6,6 +6,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
@@ -16,7 +17,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableWebSecurity
 public class ResourceServerConfiguration {
 
-    public static final String SCOPE_CAS_STANDARD = "SCOPE_cas/standard";
+    private static final String SCOPE_CAS_STANDARD = "SCOPE_cas/standard";
 
     @Bean
     protected BearerTokenAuthenticationEntryPoint bearerTokenAuthenticationEntryPoint() {
@@ -34,10 +35,16 @@ public class ResourceServerConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(disableCsrfAsMadeRedundantByOath2AndJwt())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/open-api/**")
                         .permitAll()
                         .requestMatchers("/actuator/**")
+                        .permitAll()
+                        .requestMatchers("/swagger-ui/**")
+                        .permitAll()
+                        .requestMatchers("/swagger-ui.html")
+                        .permitAll()
+                        .requestMatchers("/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers("/api/**")
                         .hasAuthority(SCOPE_CAS_STANDARD)
@@ -48,5 +55,9 @@ public class ResourceServerConfiguration {
                         .authenticationEntryPoint(bearerTokenAuthenticationEntryPoint())
                         .jwt(Customizer.withDefaults()));
         return http.build();
+    }
+
+    private Customizer<CsrfConfigurer<HttpSecurity>> disableCsrfAsMadeRedundantByOath2AndJwt() {
+        return AbstractHttpConfigurer::disable;
     }
 }
