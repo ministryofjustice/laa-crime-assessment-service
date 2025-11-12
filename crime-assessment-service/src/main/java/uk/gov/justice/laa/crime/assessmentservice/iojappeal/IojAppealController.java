@@ -5,11 +5,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,9 +24,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class IojAppealController {
 
     @GetMapping(path = "/{id}")
-    @Operation(description = "Retrieve an IOJ Appeal")
+    @Operation(description = "Retrieve an IoJ Appeal")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<Object> get(@PathVariable int id) {
+    public ResponseEntity<IojAppealDTO> get(@PathVariable int id) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @PostMapping(path = "/")
+    @Operation(description = "Create a new IoJ Appeal record")
+    @ApiResponse(responseCode = "501")
+    public ResponseEntity<IojAppealDTO> create(@RequestBody IojAppealDTO request) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @GetMapping(path = "/lookup-by-legacy-id/{id}")
+    @Operation(description = "Retrieve an IoJ Appeal by its legacy MAAT Appeal ID")
+    @ApiResponse(responseCode = "501")
+    public ResponseEntity<IojAppealDTO> getByLegacyId(@PathVariable int id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }
