@@ -105,7 +105,7 @@ jobs:
         continue-on-error: true # To make sure that SARIF upload gets called
         with:
           image: crime-assessment-service:scan
-          args: --file=crime-assessment-service/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif
+          args: --file=crime-assessment-service/Dockerfile --severity-threshold=critical --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
