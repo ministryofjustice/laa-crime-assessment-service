@@ -75,6 +75,7 @@ dependencies {
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6"
     
     compileOnly 'org.projectlombok:lombok:1.18.38'
+    
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
     testCompileOnly "org.projectlombok:lombok:1.18.38"
@@ -104,7 +105,8 @@ jacocoTestCoverageVerification {
                         'uk.gov.justice.laa.crime.assessmentservice.WebClientsConfiguration',
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
                         'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*'
+                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.config.*'
             ]
             limit {
                 minimum = 0.8
