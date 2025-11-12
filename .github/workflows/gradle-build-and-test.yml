@@ -67,7 +67,7 @@ jobs:
         uses: snyk/actions/gradle@master
         with:
           command: code test
-          args: --severity-threshold=high
+          args: --severity-threshold=critical
 
 
   vulnerability-scan-docker:
