@@ -1,8 +1,11 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.when;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
+import java.util.UUID;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
 
 import org.junit.jupiter.api.Test;
@@ -14,10 +17,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 @WebMvcTest(controllers = IojAppealController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class IojAppealControllerTest {
+
+    @MockitoBean
+    private IojAppealService iojAppealService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,12 +37,24 @@ class IojAppealControllerTest {
     private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.createJsonConverter();
 
     @Test
-    void givenEndpointNotImplemented_whenGetByIdEndpointCalled_thenError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, TEST_ID)).andExpect(status().isNotImplemented());
+    void givenInvalidRequest_whenFindAppealIsInvoked_thenReturnsBadRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, "not-a-valid-id"))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
-    void givenEndpointNotImplemented_whenCreateEndpointCalled_thenError() throws Exception {
+    void givenValidRequest_whenFindAppealIsInvoked_thenReturnsOkResponse() throws Exception {
+        UUID appealId = UUID.randomUUID();
+
+        when(iojAppealService.findIojAppeal(appealId)).thenReturn(
+            new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenEndpointNotImplemented_whenCreateAppealIsInvokedCalled_thenError() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(OBJECT_MAPPER.writeValueAsString(

@@ -3,6 +3,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 @Slf4j
 @RestController
@@ -23,24 +26,32 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "IOJ Appeals", description = "Rest API for IOJ Appeals.")
 public class IojAppealController {
 
-    @GetMapping(path = "/{id}")
+    private final IojAppealService iojAppealService;
+
+    @GetMapping(path = "/{appealId}")
     @Operation(description = "Find an IoJ Appeal")
-    @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> get(@PathVariable int id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404")
+    @ApiResponse(responseCode = "500")
+    public ResponseEntity<ApiGetIojAppealResponse> getAppeal(@PathVariable UUID appealId) {
+        ApiGetIojAppealResponse response = iojAppealService.findIojAppeal(appealId);
+
+        return response != null
+            ? ResponseEntity.ok(response)
+            : ResponseEntity.notFound().build();
     }
 
     @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
     @Operation(description = "Find an IoJ Appeal by its legacy appeal ID")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> getByLegacyAppealId(@PathVariable int legacyAppealId) {
+    public ResponseEntity<IojAppealDTO> getAppealByLegacyAppealId(@PathVariable int legacyAppealId) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @PostMapping
     @Operation(description = "Create a new IoJ Appeal")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> create(@RequestBody IojAppealDTO request) {
+    public ResponseEntity<IojAppealDTO> createAppeal(@RequestBody IojAppealDTO request) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }
