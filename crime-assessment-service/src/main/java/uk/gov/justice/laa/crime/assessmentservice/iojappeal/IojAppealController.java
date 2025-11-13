@@ -19,28 +19,28 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/iojappeal")
+@RequestMapping("/api/v1/ioj-appeals")
 @Tag(name = "IOJ Appeals", description = "Rest API for IOJ Appeals.")
 public class IojAppealController {
 
     @GetMapping(path = "/{id}")
-    @Operation(description = "Retrieve an IoJ Appeal")
+    @Operation(description = "Find an IoJ Appeal")
     @ApiResponse(responseCode = "501")
     public ResponseEntity<IojAppealDTO> get(@PathVariable int id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    @PostMapping(path = "/")
-    @Operation(description = "Create a new IoJ Appeal record")
+    @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
+    @Operation(description = "Find an IoJ Appeal by its legacy appeal ID")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> create(@RequestBody IojAppealDTO request) {
+    public ResponseEntity<IojAppealDTO> getByLegacyAppealId(@PathVariable int legacyAppealId) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    @GetMapping(path = "/lookup-by-legacy-id/{id}")
-    @Operation(description = "Retrieve an IoJ Appeal by its legacy MAAT Appeal ID")
+    @PostMapping
+    @Operation(description = "Create a new IoJ Appeal")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> getByLegacyId(@PathVariable int id) {
+    public ResponseEntity<IojAppealDTO> create(@RequestBody IojAppealDTO request) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }
