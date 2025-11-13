@@ -25,7 +25,7 @@ jobs:
         run: |
           pushd crime-assessment-service
           chmod +x ./gradlew
-          ./gradlew clean build
+          ./gradlew build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -68,13 +68,12 @@ jobs:
         continue-on-error: true # To make sure that SARIF upload gets called
         with:
           command: code test
-          args: --severity-threshold=critical --policy-path=.snyk --sarif-file-output=snyk.sarif
+          args: --severity-threshold=critical --sarif-file-output=snyk.sarif
 
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-
 
   vulnerability-scan-docker:
     runs-on: ubuntu-latest
