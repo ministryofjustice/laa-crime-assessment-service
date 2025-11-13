@@ -65,9 +65,15 @@ jobs:
 
       - name: Run Snyk to check app for vulnerabilities
         uses: snyk/actions/gradle@master
+        continue-on-error: true # To make sure that SARIF upload gets called
         with:
           command: code test
-#          args: --severity-threshold=critical --policy-path=.snyk
+          args: --severity-threshold=critical --policy-path=.snyk --sarif-file-output=snyk.sarif
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
 
 
   vulnerability-scan-docker:
