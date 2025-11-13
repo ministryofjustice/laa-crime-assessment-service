@@ -177,6 +177,12 @@ When you run the tests, Liquibase will run and set up all of the required tables
 
 If you run tests with ```./gradlew clean test --info``` you will get log output showing the table being populated with test data.
 
+### Testing the application with Postman
+
+The Postman collection and instructions for testing the endpoints can be found [here](https://dsdmoj.atlassian.net/wiki/spaces/ASLST/pages/5964468488/CAS+Runbook).
+
+Please update this whenever you add more endpoints to the controllers.
+
 ### Spotless (Code style)
 
 This application implements the Spotless plugin, which will alert you to any violations when you run `./gradlew build`. We are following the [AOSP Java code style](https://source.android.com/docs/setup/contribute/code-style).

@@ -19,7 +19,6 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     contexts: "!test"
-
   security:
     oauth2:
       client:
@@ -31,6 +30,9 @@ spring:
             client-id: ${MAAT_API_OAUTH_CLIENT_ID}
             client-secret: ${MAAT_API_OAUTH_CLIENT_SECRET}
             authorization-grant-type: client_credentials
+      resource-server:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI}
 
 server:
   port: 8091
