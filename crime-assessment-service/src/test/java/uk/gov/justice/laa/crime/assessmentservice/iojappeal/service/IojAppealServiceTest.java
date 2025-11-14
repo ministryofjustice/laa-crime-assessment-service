@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapper;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import java.util.UUID;
 
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class IojAppealServiceTest {
@@ -43,12 +43,10 @@ public class IojAppealServiceTest {
     void givenAppealIsFound_whenFindIojAppealIsInvoked_thenReturnsAppeal() {
         UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
 
-        IojAppealEntity iojAppealEntity = IojAppealEntity.builder()
-            .appealId(appealId)
-            .build();
+        IojAppealEntity iojAppealEntity =
+                IojAppealEntity.builder().appealId(appealId).build();
 
-        ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse()
-            .withAppealId(appealId.toString());
+        ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse().withAppealId(appealId.toString());
 
         when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(iojAppealEntity);
         when(iojAppealMapper.mapEntityToDTO(iojAppealEntity)).thenReturn(iojAppealResponse);

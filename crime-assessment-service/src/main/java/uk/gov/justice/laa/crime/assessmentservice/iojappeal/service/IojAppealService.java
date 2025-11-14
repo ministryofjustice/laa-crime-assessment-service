@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapper;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 @Slf4j
 @Service

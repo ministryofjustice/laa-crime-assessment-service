@@ -48,7 +48,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-validation"
     implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
 
-    implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:4.12.1-SNAPSHOT"
+    implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:4.12.2-SNAPSHOT"
     implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:1.37.2-SNAPSHOT"
 
     implementation "org.mapstruct:mapstruct:1.6.3"
