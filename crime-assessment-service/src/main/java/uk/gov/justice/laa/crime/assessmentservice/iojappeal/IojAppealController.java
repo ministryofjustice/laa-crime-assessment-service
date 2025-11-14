@@ -50,12 +50,12 @@ public class IojAppealController {
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "404")
     @ApiResponse(responseCode = "500")
-    public ResponseEntity<ApiGetIojAppealResponse> getAppealByLegacyAppealId(@PathVariable UUID legacyAppealId) {
+    public ResponseEntity<ApiGetIojAppealResponse> getAppealByLegacyAppealId(@PathVariable int legacyAppealId) {
         ApiGetIojAppealResponse response = legacyIojAppealService.findIojAppeal(legacyAppealId);
 
         return response != null
-            ? ResponseEntity.ok(response)
-            : ResponseEntity.notFound().build();
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping

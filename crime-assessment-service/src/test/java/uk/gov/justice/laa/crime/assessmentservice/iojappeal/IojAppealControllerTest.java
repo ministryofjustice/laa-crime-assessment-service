@@ -66,12 +66,12 @@ class IojAppealControllerTest {
 
     @Test
     void givenValidRequest_whenFindLegacyAppealIsInvoked_thenReturnsOkResponse() throws Exception {
-        UUID appealId = UUID.randomUUID();
+        int legacyAppealId = 1;
 
-        when(legacyIojAppealService.findIojAppeal(appealId))
-                .thenReturn(new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
+        when(legacyIojAppealService.findIojAppeal(legacyAppealId))
+                .thenReturn(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId));
 
-        mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, appealId.toString()))
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
                 .andExpect(status().isOk());
     }
 
@@ -89,19 +89,5 @@ class IojAppealControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
         mockMvc.perform(MockMvcRequestBuilders.patch(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
         mockMvc.perform(MockMvcRequestBuilders.put(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
-    }
-
-    @Test
-    void givenEndpointNotImplemented_whenGetByLegacyIdEndpointCalled_thenError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, TEST_ID))
-                .andExpect(status().isNotImplemented());
-        mockMvc.perform(MockMvcRequestBuilders.post(FIND_BY_LEGACY_ID_ENDPOINT, TEST_ID))
-                .andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(MockMvcRequestBuilders.delete(FIND_BY_LEGACY_ID_ENDPOINT, TEST_ID))
-                .andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(MockMvcRequestBuilders.patch(FIND_BY_LEGACY_ID_ENDPOINT, TEST_ID))
-                .andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(MockMvcRequestBuilders.put(FIND_BY_LEGACY_ID_ENDPOINT, TEST_ID))
-                .andExpect(status().isMethodNotAllowed());
     }
 }
