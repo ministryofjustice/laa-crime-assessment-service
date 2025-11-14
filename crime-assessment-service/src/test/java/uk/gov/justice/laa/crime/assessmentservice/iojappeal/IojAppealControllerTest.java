@@ -1,24 +1,26 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
-import java.util.UUID;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 @WebMvcTest(controllers = IojAppealController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -26,6 +28,9 @@ class IojAppealControllerTest {
 
     @MockitoBean
     private IojAppealService iojAppealService;
+
+    @MockitoBean
+    private LegacyIojAppealService legacyIojAppealService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,18 +44,35 @@ class IojAppealControllerTest {
     @Test
     void givenInvalidRequest_whenFindAppealIsInvoked_thenReturnsBadRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, "not-a-valid-id"))
-            .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     void givenValidRequest_whenFindAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        when(iojAppealService.findIojAppeal(appealId)).thenReturn(
-            new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
+        when(iojAppealService.findIojAppeal(appealId))
+                .thenReturn(new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenInvalidRequest_whenFindLegacyAppealIsInvoked_thenReturnsBadRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, "not-a-valid-id"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void givenValidRequest_whenFindLegacyAppealIsInvoked_thenReturnsOkResponse() throws Exception {
+        UUID appealId = UUID.randomUUID();
+
+        when(legacyIojAppealService.findIojAppeal(appealId))
+                .thenReturn(new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, appealId.toString()))
+                .andExpect(status().isOk());
     }
 
     @Test
