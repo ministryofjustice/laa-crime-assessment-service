@@ -70,7 +70,7 @@ dependencies {
     // Crime Commons
     implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"
     implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.commonsModSchemas"
-    
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
