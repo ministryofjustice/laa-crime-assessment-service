@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import java.util.UUID;
@@ -90,7 +90,6 @@ class IojAppealControllerTest {
     @Test
     void givenEndpointNotImplemented_whenCreateEndpointCalledWithValidRequest_then501Error() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(IOJAPPEAL_CREATE_ENDPOINT)
-    void givenEndpointNotImplemented_whenCreateAppealIsInvokedCalled_thenError() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(OBJECT_MAPPER.writeValueAsString(createPopulatedValidRequest())))
