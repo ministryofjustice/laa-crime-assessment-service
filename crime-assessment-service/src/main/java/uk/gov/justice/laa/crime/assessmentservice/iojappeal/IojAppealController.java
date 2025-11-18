@@ -6,11 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealRequest;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealResponse;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiGetIojAppealResponse;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.IojAppeal;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.IojAppealMetadata;
 
 import java.util.List;
 

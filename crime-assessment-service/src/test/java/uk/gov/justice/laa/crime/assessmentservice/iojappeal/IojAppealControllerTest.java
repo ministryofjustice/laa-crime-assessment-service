@@ -3,7 +3,6 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealRequest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
