@@ -5,7 +5,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealResponse;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.IojAppeal;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.IojAppealMetadata;
+
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,21 +33,24 @@ public class IojAppealController {
     @GetMapping(path = "/{id}")
     @Operation(description = "Retrieve an IoJ Appeal")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> get(@PathVariable int id) {
+    public ResponseEntity<ApiGetIojAppealResponse> get(@PathVariable int id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @PostMapping(path = "/")
     @Operation(description = "Create a new IoJ Appeal record")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> create(@RequestBody IojAppealDTO request) {
+    public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
+        request.setIojAppeal(new IojAppeal());
+        request.setIojAppealMetadata(new IojAppealMetadata());
+        List<String> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @GetMapping(path = "/lookup-by-legacy-id/{id}")
     @Operation(description = "Retrieve an IoJ Appeal by its legacy MAAT Appeal ID")
     @ApiResponse(responseCode = "501")
-    public ResponseEntity<IojAppealDTO> getByLegacyId(@PathVariable int id) {
+    public ResponseEntity<ApiGetIojAppealResponse> getByLegacyId(@PathVariable int id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

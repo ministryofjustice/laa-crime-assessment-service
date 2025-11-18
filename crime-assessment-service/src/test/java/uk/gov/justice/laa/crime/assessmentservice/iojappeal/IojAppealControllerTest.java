@@ -3,7 +3,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.temo.ApiCreateIojAppealRequest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +39,7 @@ class IojAppealControllerTest {
     void givenEndpointNotImplemented_whenCreateEndpointCalled_thenError() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(IOJAPPEAL_CREATE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(OBJECT_MAPPER.writeValueAsString(
-                                IojAppealDTO.builder().build())))
+                        .content(OBJECT_MAPPER.writeValueAsString(new ApiCreateIojAppealRequest())))
                 .andExpect(status().isNotImplemented());
     }
 
