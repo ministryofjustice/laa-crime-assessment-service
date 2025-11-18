@@ -1,6 +1,9 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import lombok.experimental.UtilityClass;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 

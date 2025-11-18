@@ -18,8 +18,8 @@ java {
 def versions = [
     sentry              : "8.23.0",
     resilience4j        : "2.3.0",
-    crimeCommonsClasses : "4.21.0",
-    commonsModSchemas   : "1.37.1"
+    crimeCommonsClasses : "4.22.0",
+    commonsModSchemas   : "1.39.0"
 ]
 
 repositories {

@@ -2,7 +2,14 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.IojAppealDecision;
 import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
@@ -10,6 +17,7 @@ import uk.gov.justice.laa.crime.enums.NewWorkReason;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -46,91 +54,46 @@ class ApiCreateIojAppealRequestValidatorTest {
                 .isEqualTo(1);
     }
 
-    @Test
-    void whenAllFieldsFilledWithInvalidAppealReason_thenSingleErrorIsAssessor() {
-        // Judicial Review + No Judge
+    // Appeal Reason/Assessor Combination Tests
+    private static Stream<Arguments> reasonAssessorCombinations() {
+        return Stream.of(
+                Arguments.of(IojAppealAssessor.CASEWORKER, NewWorkReason.JR, false ),
+                Arguments.of(IojAppealAssessor.CASEWORKER, NewWorkReason.NEW, true),
+                Arguments.of(IojAppealAssessor.CASEWORKER, NewWorkReason.PRI, true),
+                Arguments.of(IojAppealAssessor.JUDGE, NewWorkReason.JR, true),
+                Arguments.of(IojAppealAssessor.JUDGE, NewWorkReason.NEW, false),
+                Arguments.of(IojAppealAssessor.JUDGE, NewWorkReason.PRI, true)
+        );
+    }
+
+    // Judicial Review Combinations
+    @ParameterizedTest
+    @MethodSource("reasonAssessorCombinations")
+    void whenCombinationIsTestedAndInvalid_thenErrorShouldSurface(IojAppealAssessor assessor, NewWorkReason reason, boolean isValidCombination) {
         var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealReason(NewWorkReason.CPS);
+        request.getIojAppeal().setAppealAssessor(assessor);
+        request.getIojAppeal().setAppealReason(reason);
+
+        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        if(isValidCombination) {
+            assertThat(returnedErrorList).isEmpty();
+        }
+        else {
+            assertThat(returnedErrorList).hasSize(1);
+            assertThat(returnedErrorList.getFirst()).isEqualTo("Incorrect Combination of Assessor and Reason.");
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value=NewWorkReason.class, names={"PRI", "NEW", "JR"},mode=EnumSource.Mode.EXCLUDE)
+    void whenInvalidAppealReasonSelected_thenOneError(NewWorkReason reason) {
+        // Judicial Review + Judge
+        var request = createPopulatedValidRequest();
+        request.getIojAppeal().setAppealReason(reason);
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
         assertThat(returnedErrorList.getFirst()).isEqualTo("Appeal Reason is invalid.");
-    }
-
-    // Appeal Reason/Assessor Combination Tests
-
-    // Judicial Review Combinations
-
-    @Test
-    void whenAllFieldsFilledWithJRandCaseworker_thenSingleErrorIsAssessor() {
-        // Judicial Review + No Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.CASEWORKER);
-        request.getIojAppeal().setAppealReason(NewWorkReason.JR);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo("Incorrect Combination of Assessor and Reason.");
-    }
-
-    @Test
-    void whenAllFieldsFilledWithJRandJudge_thenNoErrors() {
-        // Judicial Review + Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.JUDGE);
-        request.getIojAppeal().setAppealReason(NewWorkReason.JR);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).isEmpty();
-    }
-
-    // New Appeal Combinations
-
-    @Test
-    void whenAllFieldsFilledWithNewandJudge_thenSingleErrorIsAssessor() {
-        // Judicial Review + No Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.JUDGE);
-        request.getIojAppeal().setAppealReason(NewWorkReason.NEW);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo("Incorrect Combination of Assessor and Reason.");
-    }
-
-    @Test
-    void whenAllFieldsFilledWithNewandCaseworker_thenNoErrors() {
-        // Judicial Review + Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.CASEWORKER);
-        request.getIojAppeal().setAppealReason(NewWorkReason.NEW);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).isEmpty();
-    }
-
-    // Previous Review Invalid Combinations
-
-    @Test
-    void whenAllFieldsFilledWithPRIandCaseworker_thenNoErrors() {
-        // Judicial Review + Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.CASEWORKER);
-        request.getIojAppeal().setAppealReason(NewWorkReason.PRI);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).isEmpty();
-    }
-
-    @Test
-    void whenAllFieldsFilledWithPRIandJudge_thenNoErrors() {
-        // Judicial Review + Judge
-        var request = createPopulatedValidRequest();
-        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.JUDGE);
-        request.getIojAppeal().setAppealReason(NewWorkReason.PRI);
-
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).isEmpty();
     }
 
     // helpers
