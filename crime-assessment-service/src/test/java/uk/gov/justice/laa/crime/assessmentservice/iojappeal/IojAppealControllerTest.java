@@ -56,7 +56,7 @@ class IojAppealControllerTest {
 
     @Test
     void givenInvalidRequest_whenCreateEndpointCalled_then400WithErrorList() throws Exception {
-        var request = createPopulatedValidRequest();
+        var request = new ApiCreateIojAppealRequest();
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
 

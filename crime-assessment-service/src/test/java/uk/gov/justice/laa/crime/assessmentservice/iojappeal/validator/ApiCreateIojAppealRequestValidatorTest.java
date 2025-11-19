@@ -20,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class ApiCreateIojAppealRequestValidatorTest {
 
@@ -65,7 +66,6 @@ class ApiCreateIojAppealRequestValidatorTest {
                 Arguments.of(IojAppealAssessor.JUDGE, NewWorkReason.PRI, true));
     }
 
-    // Judicial Review Combinations
     @ParameterizedTest
     @MethodSource("reasonAssessorCombinations")
     void whenIojAssessorAndReasonCombinationIsTested_thenErrorShouldSurfaceIfInvalidCombination(
@@ -98,6 +98,28 @@ class ApiCreateIojAppealRequestValidatorTest {
         assertThat(returnedErrorList.getFirst()).isEqualTo("Appeal Reason is invalid.");
     }
 
+    @Test
+    void whenValidButNoAssessor_thenOnlyMissingErrors() {
+        var request = createPopulatedValidRequest();
+        request.getIojAppeal().setAppealAssessor(null);
+        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        assertThat(returnedErrorList).hasSize(1);
+        assertThat(returnedErrorList.getFirst()).isEqualTo("Appeal Assessor is missing.");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource // additional check to ensure validation works on empty strings and nulls
+    void whenValidButNoUserSessionDetails_thenOnlyMissingErrors(String emptyOrNull) {
+        var request = createPopulatedValidRequest();
+        request.getIojAppealMetadata().getUserSession().setUserName(emptyOrNull);
+        request.getIojAppealMetadata().getUserSession().setSessionId(emptyOrNull);
+
+        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        assertThat(returnedErrorList)
+                .hasSize(2)
+                .containsExactlyInAnyOrder("Session ID is missing.", "Username is missing.");
+    }
+
     // helpers
     private ApiCreateIojAppealRequest createPopulatedValidRequest() {
         ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
@@ -112,8 +134,11 @@ class ApiCreateIojAppealRequestValidatorTest {
         var metaData = new IojAppealMetadata();
         metaData.setApplicationId("123");
         metaData.setLegacyApplicationId(456);
-        metaData.setUserSession(new ApiUserSession());
         metaData.setCaseManagementUnitId(789);
+        var userSession = new ApiUserSession();
+        userSession.setUserName("Test User");
+        userSession.setSessionId("Test Session");
+        metaData.setUserSession(userSession);
 
         request.setIojAppeal(appeal);
         request.setIojAppealMetadata(metaData);
