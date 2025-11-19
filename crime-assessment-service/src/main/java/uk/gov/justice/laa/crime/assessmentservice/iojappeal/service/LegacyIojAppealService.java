@@ -21,7 +21,7 @@ public class LegacyIojAppealService {
 
     private final MaatCourtDataApiClient maatCourtDataApiClient;
 
-    public ApiGetIojAppealResponse findIojAppeal(int legacyAppealId) {
+    public ApiGetIojAppealResponse find(int legacyAppealId) {
         IojAppealEntity entity = iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId);
 
         if (entity != null) {

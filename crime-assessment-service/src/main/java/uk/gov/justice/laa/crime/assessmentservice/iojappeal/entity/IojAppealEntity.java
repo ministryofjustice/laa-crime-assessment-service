@@ -41,10 +41,10 @@ public class IojAppealEntity {
     @Column(name = "receipt_date")
     private LocalDate receivedDate;
 
-    @Column(name = "appeal_reason")
+    @Column(name = "reason")
     private String appealReason;
 
-    @Column(name = "appeal_assessor")
+    @Column(name = "assessor")
     private String appealAssessor;
 
     @Column(name = "appeal_decision")
@@ -59,7 +59,7 @@ public class IojAppealEntity {
     @Column(name = "decision_date")
     private LocalDate decisionDate;
 
-    @Column(name = "case_unit_management_id")
+    @Column(name = "case_management_unit_id")
     private int caseManagementUnitId;
 
     @Column(name = "created_by")

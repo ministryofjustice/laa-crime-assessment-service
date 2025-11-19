@@ -19,8 +19,8 @@ def versions = [
     sentry                      : "8.23.0",
     resilience4j                : "2.3.0",
     mapstruct                   : "1.6.3",
-    crimeCommonsClasses         : "4.22.0",
-    crimeCommonsModSchemas      : "1.39.0"
+    crimeCommonsClasses         : "4.23.0",
+    crimeCommonsModSchemas      : "1.40.0"
 ]
 
 repositories {
@@ -72,7 +72,7 @@ dependencies {
 
     // Crime Commons
     implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"
-    implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.commonsModSchemas"
+    implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.crimeCommonsModSchemas"
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -31,19 +31,19 @@ public class LegacyIojAppealServiceTest {
     private LegacyIojAppealService legacyIojAppealService;
 
     @Test
-    void givenAppealNotFound_whenLegacyFindIojAppealIsInvoked_thenReturnsNull() {
+    void givenAppealNotFound_whenLegacyFindIsInvoked_thenReturnsNull() {
         int legacyAppealId = 1;
 
         when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(null);
         when(maatCourtDataApiClient.getIojAppeal(legacyAppealId)).thenReturn(null);
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.findIojAppeal(legacyAppealId);
+        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
 
         assertThat(iojAppeal).isNull();
     }
 
     @Test
-    void givenAppealNotFoundInAssessmentServiceButFoundInMAAT_whenLegacyFindIojAppealIsInvoked_thenReturnsNull() {
+    void givenAppealNotFoundInAssessmentServiceButFoundInMAAT_whenLegacyFindIsInvoked_thenReturnsNull() {
         int legacyAppealId = 1;
 
         ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId);
@@ -51,13 +51,13 @@ public class LegacyIojAppealServiceTest {
         when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(null);
         when(maatCourtDataApiClient.getIojAppeal(legacyAppealId)).thenReturn(iojAppealResponse);
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.findIojAppeal(legacyAppealId);
+        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
 
         assertThat(iojAppeal).isEqualTo(iojAppealResponse);
     }
 
     @Test
-    void givenAppealIsFoundInAssessmentServiceDb_whenLegacyFindIojAppealIsInvoked_thenReturnsAppeal() {
+    void givenAppealIsFoundInAssessmentServiceDb_whenLegacyFind() {
         int legacyAppealId = 1;
 
         IojAppealEntity iojAppealEntity =
@@ -68,7 +68,7 @@ public class LegacyIojAppealServiceTest {
         when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(iojAppealEntity);
         when(iojAppealMapper.mapEntityToDTO(iojAppealEntity)).thenReturn(iojAppealResponse);
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.findIojAppeal(legacyAppealId);
+        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
 
         assertThat(iojAppeal).isEqualTo(iojAppealResponse);
     }

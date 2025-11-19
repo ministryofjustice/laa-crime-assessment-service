@@ -8,6 +8,7 @@ import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapp
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -29,18 +30,18 @@ public class IojAppealServiceTest {
     private IojAppealService iojAppealService;
 
     @Test
-    void givenAppealNotFound_whenFindIojAppealIsInvoked_thenReturnsNull() {
+    void givenAppealNotFound_whenFindIsInvoked_thenReturnsNull() {
         UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
 
         when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(null);
 
-        ApiGetIojAppealResponse iojAppeal = iojAppealService.findIojAppeal(appealId);
+        Optional<ApiGetIojAppealResponse> iojAppeal = iojAppealService.find(appealId);
 
-        assertThat(iojAppeal).isNull();
+        assertThat(iojAppeal).isEqualTo(Optional.empty());
     }
 
     @Test
-    void givenAppealIsFound_whenFindIojAppealIsInvoked_thenReturnsAppeal() {
+    void givenAppealIsFound_whenFind() {
         UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
 
         IojAppealEntity iojAppealEntity =
@@ -51,8 +52,8 @@ public class IojAppealServiceTest {
         when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(iojAppealEntity);
         when(iojAppealMapper.mapEntityToDTO(iojAppealEntity)).thenReturn(iojAppealResponse);
 
-        ApiGetIojAppealResponse iojAppeal = iojAppealService.findIojAppeal(appealId);
+        Optional<ApiGetIojAppealResponse> iojAppeal = iojAppealService.find(appealId);
 
-        assertThat(iojAppeal).isEqualTo(iojAppealResponse);
+        assertThat(iojAppeal).isEqualTo(Optional.of(iojAppealResponse));
     }
 }
