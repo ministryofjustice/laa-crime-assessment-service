@@ -21,7 +21,7 @@ public class ApiCreateIojAppealRequestValidator {
     public List<String> validateRequest(ApiCreateIojAppealRequest request) {
         var errorList = new ArrayList<String>();
         if (Objects.isNull(request)) {
-            return List.of(String.format(FIELD_IS_MISSING, "Request"));
+            return List.of(getMissingFieldErrorText("Request"));
         }
 
         validateMetaData(request.getIojAppealMetadata(), errorList);
@@ -34,44 +34,45 @@ public class ApiCreateIojAppealRequestValidator {
 
     void validateMetaData(IojAppealMetadata metadata, List<String> errorList) {
         if (Objects.isNull(metadata)) {
-            errorList.add(String.format(FIELD_IS_MISSING, "Metadata"));
+            errorList.add(getMissingFieldErrorText("Metadata"));
             return;
         }
-        // nullchecks
-        validateFieldNotNull(metadata.getCaseManagementUnitId(), "Case Management Unit", errorList);
-        validateFieldNotNull(metadata.getUserSession(), "User Session", errorList);
-        validateUserSessionContent(metadata.getUserSession(), errorList);
+        validateFieldNotEmpty(metadata.getCaseManagementUnitId(), "Case Management Unit", errorList);
         validateOneApplicationIdPresent(metadata, errorList);
+        validateUserSession(metadata.getUserSession(), errorList);
     }
 
     // Ensure that we have an application ID. Either LegacyApplicationId, or ApplicationId must be present.
     private void validateOneApplicationIdPresent(IojAppealMetadata metadata, List<String> errorList) {
         if (Objects.isNull(metadata.getApplicationId()) && Objects.isNull(metadata.getLegacyApplicationId())) {
-            errorList.add(String.format(FIELD_IS_MISSING, "Both Application Id and Legacy Application Id"));
+            errorList.add(getMissingFieldErrorText("Both Application Id and Legacy Application Id"));
         }
     }
 
     // ensure the username/session id are present in usersession.
-    private void validateUserSessionContent(ApiUserSession userSession, List<String> errorList) {
-        validateFieldNotNull(userSession.getSessionId(), "Session ID", errorList);
-        validateFieldNotNull(userSession.getUserName(), "Username", errorList);
+    private void validateUserSession(ApiUserSession userSession, List<String> errorList) {
+        if (Objects.isNull(userSession)) {
+            errorList.add(getMissingFieldErrorText("User Session"));
+        } else {
+            validateFieldNotEmpty(userSession.getSessionId(), "Session ID", errorList);
+            validateFieldNotEmpty(userSession.getUserName(), "Username", errorList);
+        }
     }
 
     // Appeal Validation
 
     void validateIoJAppeal(IojAppeal appeal, List<String> errorList) {
         if (Objects.isNull(appeal)) {
-            errorList.add(String.format(FIELD_IS_MISSING, "Appeal"));
+            errorList.add(getMissingFieldErrorText("Appeal"));
             return;
         }
-        // validate notNull
-        validateFieldNotNull(appeal.getAppealDecision(), "Appeal Decision", errorList);
-        validateFieldNotNull(appeal.getAppealAssessor(), "Appeal Assessor", errorList);
-        validateFieldNotNull(appeal.getAppealReason(), "Appeal Reason", errorList);
-        validateFieldNotNull(appeal.getDecisionReason(), "Decision Reason", errorList);
-        validateFieldNotNull(appeal.getDecisionDate(), "Decision Date", errorList);
-        validateFieldNotNull(appeal.getReceivedDate(), "Received Date", errorList);
-        // validate content
+        validateFieldNotEmpty(appeal.getAppealDecision(), "Appeal Decision", errorList);
+        validateFieldNotEmpty(appeal.getAppealAssessor(), "Appeal Assessor", errorList);
+        validateFieldNotEmpty(appeal.getAppealReason(), "Appeal Reason", errorList);
+        validateFieldNotEmpty(appeal.getDecisionReason(), "Decision Reason", errorList);
+        validateFieldNotEmpty(appeal.getDecisionDate(), "Decision Date", errorList);
+        validateFieldNotEmpty(appeal.getReceivedDate(), "Received Date", errorList);
+
         validateAppealReasonType(appeal.getAppealReason(), errorList);
         validateAppealReasonAppealAssessorCombinations(appeal, errorList);
     }
@@ -91,14 +92,18 @@ public class ApiCreateIojAppealRequestValidator {
         if ((Objects.nonNull(assessor))
                 && (NewWorkReason.getFrom("NEW").equals(reason) && (!IojAppealAssessor.CASEWORKER.equals(assessor))
                         || (NewWorkReason.getFrom("JR").equals(reason) && !IojAppealAssessor.JUDGE.equals(assessor)))) {
-                errorList.add("Incorrect Combination of Assessor and Reason.");
+            errorList.add("Incorrect Combination of Assessor and Reason.");
         }
     }
 
     // Utility Methods
-    private void validateFieldNotNull(Object field, String fieldName, List<String> errorList) {
+    private void validateFieldNotEmpty(Object field, String fieldName, List<String> errorList) {
         if (ObjectUtils.isEmpty(field)) {
-            errorList.add(String.format(FIELD_IS_MISSING, fieldName));
+            errorList.add(getMissingFieldErrorText(fieldName));
         }
+    }
+
+    private String getMissingFieldErrorText(String fieldName) {
+        return String.format(FIELD_IS_MISSING, fieldName);
     }
 }

@@ -109,7 +109,10 @@ class IojAppealControllerTest {
         var metaData = new IojAppealMetadata();
         metaData.setApplicationId("123");
         metaData.setLegacyApplicationId(456);
-        metaData.setUserSession(new ApiUserSession());
+        var session = new ApiUserSession();
+        session.setUserName("Test User");
+        session.setSessionId("Test Session");
+        metaData.setUserSession(session);
         metaData.setCaseManagementUnitId(789);
 
         request.setIojAppeal(appeal);
