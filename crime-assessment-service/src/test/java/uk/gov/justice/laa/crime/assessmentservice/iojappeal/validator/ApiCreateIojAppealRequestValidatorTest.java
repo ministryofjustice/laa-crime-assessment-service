@@ -1,6 +1,13 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.APP_IDS;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_APPEAL_REASON_IS_INVALID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_INCORRECT_COMBINATION;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.SESSION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.USERNAME;
 
 import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -32,7 +39,7 @@ class ApiCreateIojAppealRequestValidatorTest {
                 ApiCreateIojAppealRequestValidator.validateRequest(new ApiCreateIojAppealRequest());
         assertThat(returnedErrorList).hasSize(2);
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.contains("is missing."))
+                        .filter(x -> x.contains(" is missing."))
                         .count())
                 .isEqualTo(2);
     }
@@ -45,12 +52,12 @@ class ApiCreateIojAppealRequestValidatorTest {
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(9); // 6 field validations on appeal, 3 on metadata.
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.contains("is missing."))
+                        .filter(x -> x.contains(" is missing."))
                         .count())
                 .isEqualTo(9);
         // ensure that the applicationId/LegacyApplicationId check has failed.
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.equals("Both Application Id and Legacy Application Id is missing."))
+                        .filter(x -> x.equals(getExpectedMissingError(APP_IDS)))
                         .count())
                 .isEqualTo(1);
     }
@@ -79,7 +86,7 @@ class ApiCreateIojAppealRequestValidatorTest {
             assertThat(returnedErrorList).isEmpty();
         } else {
             assertThat(returnedErrorList).hasSize(1);
-            assertThat(returnedErrorList.getFirst()).isEqualTo("Incorrect Combination of Assessor and Reason.");
+            assertThat(returnedErrorList.getFirst()).isEqualTo(ERROR_INCORRECT_COMBINATION);
         }
     }
 
@@ -95,7 +102,7 @@ class ApiCreateIojAppealRequestValidatorTest {
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo("Appeal Reason is invalid.");
+        assertThat(returnedErrorList.getFirst()).isEqualTo(ERROR_APPEAL_REASON_IS_INVALID);
     }
 
     @Test
@@ -104,7 +111,7 @@ class ApiCreateIojAppealRequestValidatorTest {
         request.getIojAppeal().setAppealAssessor(null);
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo("Appeal Assessor is missing.");
+        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR));
     }
 
     @ParameterizedTest
@@ -117,7 +124,7 @@ class ApiCreateIojAppealRequestValidatorTest {
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList)
                 .hasSize(2)
-                .containsExactlyInAnyOrder("Session ID is missing.", "Username is missing.");
+                .containsExactlyInAnyOrder(getExpectedMissingError(SESSION_ID), getExpectedMissingError(USERNAME));
     }
 
     // helpers
@@ -143,5 +150,9 @@ class ApiCreateIojAppealRequestValidatorTest {
         request.setIojAppeal(appeal);
         request.setIojAppealMetadata(metaData);
         return request;
+    }
+
+    private String getExpectedMissingError(String fieldName) {
+        return String.format(ERROR_FIELD_IS_MISSING, fieldName);
     }
 }
