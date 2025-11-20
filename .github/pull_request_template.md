@@ -16,7 +16,4 @@ Before you ask people to review this PR:
 - [ ] You should have looked at the diff against main and ensured that nothing unexpected is included in your changes.
 - [ ] You should have checked that the commit messages say why the change was made.
 - [ ] Any necessary documentation (link to any outside of the codebase) should have been updated.
-
-## Additional checks
-
-- Don’t forget to [run](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions/workflows/ExecuteUiTests.yaml) the MAAT functional test suite after deploying your changes to the DEV or TEST environments to ensure your changes haven’t broken any of the functional tests.
+- [ ] Where relevant the changes should have been deployed to the DEV/TEST environment and the Functional Test Suite [run](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions/workflows/ExecuteUiTests.yaml) to verify nothing new has been broken.
