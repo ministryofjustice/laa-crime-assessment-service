@@ -22,7 +22,7 @@ jobs:
             echo "Please update the Jira link to point to the corresponding work item(s)."
             failed=1
           fi
-          commit_limit=2
+          commit_limit=40
           if (( $COMMIT_COUNT > $commit_limit )); then
             echo "You have exceeded the recommended limit of $commit_limit commits in this PR. Please fix-up your commits to make them more individually meaningful."
             failed=1
