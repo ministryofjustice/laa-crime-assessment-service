@@ -1,10 +1,21 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.swagger.v3.core.util.ObjectMapperFactory;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.IojAppealDTO;
+import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
+import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
+import uk.gov.justice.laa.crime.enums.IojAppealDecision;
+import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
+import uk.gov.justice.laa.crime.enums.NewWorkReason;
 
+import java.time.LocalDateTime;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,12 +47,28 @@ class IojAppealControllerTest {
     }
 
     @Test
-    void givenEndpointNotImplemented_whenCreateEndpointCalled_thenError() throws Exception {
+    void givenEndpointNotImplemented_whenCreateEndpointCalledWithValidRequest_then501Error() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(IOJAPPEAL_CREATE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(OBJECT_MAPPER.writeValueAsString(
-                                IojAppealDTO.builder().build())))
+                        .content(OBJECT_MAPPER.writeValueAsString(createPopulatedValidRequest())))
                 .andExpect(status().isNotImplemented());
+    }
+
+    @Test
+    void givenInvalidRequest_whenCreateEndpointCalled_then400WithErrorList() throws Exception {
+        var request = new ApiCreateIojAppealRequest();
+        request.setIojAppealMetadata(new IojAppealMetadata());
+        request.setIojAppeal(new IojAppeal());
+
+        mockMvc.perform(MockMvcRequestBuilders.post(IOJAPPEAL_CREATE_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(OBJECT_MAPPER.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").isEmpty())
+                .andExpect(jsonPath("$.messageList").isArray())
+                .andExpect(jsonPath("$.messageList.size()").value("9"))
+                .andExpect(jsonPath("$.messageList[0]", Matchers.containsString(" is missing.")));
     }
 
     @Test
@@ -66,5 +93,30 @@ class IojAppealControllerTest {
                 .andExpect(status().isMethodNotAllowed());
         mockMvc.perform(MockMvcRequestBuilders.put(IOJAPPEAL_LEGACY_ID_ENDPOINT, TEST_ID))
                 .andExpect(status().isMethodNotAllowed());
+    }
+
+    // helpers
+    private ApiCreateIojAppealRequest createPopulatedValidRequest() {
+        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
+        var appeal = new IojAppeal();
+        appeal.setAppealDecision(IojAppealDecision.PASS);
+        appeal.setAppealReason(NewWorkReason.JR);
+        appeal.setAppealAssessor(IojAppealAssessor.JUDGE);
+        appeal.setDecisionReason(IojAppealDecisionReason.INTERESTS_PERSON);
+        appeal.setReceivedDate(LocalDateTime.now());
+        appeal.setDecisionDate(LocalDateTime.now());
+
+        var metaData = new IojAppealMetadata();
+        metaData.setApplicationId("123");
+        metaData.setLegacyApplicationId(456);
+        var session = new ApiUserSession();
+        session.setUserName("Test User");
+        session.setSessionId("Test Session");
+        metaData.setUserSession(session);
+        metaData.setCaseManagementUnitId(789);
+
+        request.setIojAppeal(appeal);
+        request.setIojAppealMetadata(metaData);
+        return request;
     }
 }

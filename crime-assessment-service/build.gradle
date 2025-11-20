@@ -16,8 +16,10 @@ java {
 }
 
 def versions = [
-    sentry          : "8.23.0",
-    resilience4j    : "2.3.0"
+    sentry              : "8.23.0",
+    resilience4j        : "2.3.0",
+    crimeCommonsClasses : "4.22.0",
+    commonsModSchemas   : "1.39.0"
 ]
 
 repositories {
@@ -64,6 +66,10 @@ dependencies {
 
     // Prometheus
     implementation "io.micrometer:micrometer-registry-prometheus"
+
+    // Crime Commons
+    implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"
+    implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.commonsModSchemas"
     
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
