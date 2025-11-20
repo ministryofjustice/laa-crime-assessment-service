@@ -1,0 +1,76 @@
+package uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@Entity
+@Table(name = "ioj_appeal", schema = "ioj_appeal")
+public class IojAppealEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "appeal_id")
+    private UUID appealId;
+
+    @Column(name = "legacy_appeal_id")
+    private int legacyAppealId;
+
+    @Column(name = "legacy_application_id")
+    private int legacyApplicationId;
+
+    @Column(name = "receipt_date")
+    private LocalDate receivedDate;
+
+    @Column(name = "reason")
+    private String appealReason;
+
+    @Column(name = "assessor")
+    private String appealAssessor;
+
+    @Column(name = "appeal_decision")
+    private String appealDecision;
+
+    @Column(name = "decision_reason")
+    private String decisionReason;
+
+    @Column(name = "notes")
+    private String notes;
+
+    @Column(name = "decision_date")
+    private LocalDate decisionDate;
+
+    @Column(name = "case_management_unit_id")
+    private int caseManagementUnitId;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdDate;
+
+    @Column(name = "modified_by")
+    private String modifiedBy;
+
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedDate;
+}

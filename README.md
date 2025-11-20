@@ -171,6 +171,18 @@ Once you're ready to run the application:
 ./start-local.sh
 ```
 
+### Tests
+
+When you run the tests, Liquibase will run and set up all of the required tables, using the same ```db.changelog-master.yaml``` file as the main application. It also runs using the _test_ context, which means any migration file (e.g. 04-seed-test-ioj-appeal-data.sql) that is marked with that context will run. This will seed the test h2 database with data you can work with.
+
+If you run tests with ```./gradlew clean test --info``` you will get log output showing the table being populated with test data.
+
+### Testing the application with Postman
+
+The Postman collection and instructions for testing the endpoints can be found [here](https://dsdmoj.atlassian.net/wiki/spaces/ASLST/pages/5964468488/CAS+Runbook).
+
+Please update this whenever you add more endpoints to the controllers.
+
 ### Spotless (Code style)
 
 This application implements the Spotless plugin, which will alert you to any violations when you run `./gradlew build`. We are following the [AOSP Java code style](https://source.android.com/docs/setup/contribute/code-style).

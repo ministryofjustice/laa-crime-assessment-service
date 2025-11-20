@@ -7,7 +7,6 @@ spring:
     aws:
       region:
         static: eu-west-2
-
   datasource:
     url: jdbc:postgresql://${DATASOURCE_HOST_PORT}/${DATASOURCE_DBNAME}
     username: ${DATASOURCE_USERNAME}
@@ -17,6 +16,23 @@ spring:
       connection-timeout: 30000
       idle-timeout: 60000
       max-lifetime: 3600000
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: "!test"
+  security:
+    oauth2:
+      client:
+        provider:
+          maat-api:
+            token-uri: ${MAAT_API_OAUTH_URL}
+        registration:
+          maat-api:
+            client-id: ${MAAT_API_OAUTH_CLIENT_ID}
+            client-secret: ${MAAT_API_OAUTH_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+      resource-server:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI}
 
 server:
   port: 8091
@@ -32,7 +48,27 @@ management:
     propagation:
       type: w3c,b3
     enabled: true
-    
+
+services:
+  maat-api:
+    base-url: ${MAAT_API_BASE_URL}
+    registrationId: maat-api
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retry-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
+          - org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests
+          - org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
+          - org.springframework.web.reactive.function.client.WebClientResponseException.GatewayTimeout
+
 springdoc:
   packagesToScan: uk.gov.justice.laa.crime.assessmentservice
   api-docs:

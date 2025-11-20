@@ -1,0 +1,63 @@
+spring:
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: test
+  datasource:
+    url: jdbc:h2:mem:crime_assessment_service_test_db;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate.jdbc.lob.non_contextual_creation: true
+      hibernate.enable_lazy_load_no_trans: true
+  security:
+    oauth2:
+      client:
+        provider:
+          maat-api:
+            token-uri: http://localhost:${wiremock.server.port}/oauth2/token
+        registration:
+          maat-api:
+            client-id: dummy-client
+            client-secret: dummy-secret
+            authorization-grant-type: client_credentials
+
+      resource-server:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9999}
+      
+logging:
+  level:
+    root: INFO
+    liquibase: DEBUG
+    org.springframework.liquibase: DEBUG
+
+services:
+  maat-api:
+    base-url: http://localhost:${wiremock.server.port}
+    registrationId: maat-api
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retry-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
+          - org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests
+          - org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
+          - org.springframework.web.reactive.function.client.WebClientResponseException.GatewayTimeout
