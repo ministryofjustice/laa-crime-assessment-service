@@ -11,27 +11,24 @@ jobs:
       - name: PR description check
         env:
           DESCRIPTION: ${{ github.event.pull_request.body }}
-        run: |
-          if [[ $DESCRIPTION == *"Describe what you did and why"* ]]; then
-            echo "Please add a meaningful description to your PR."
-            exit 1
-          fi
-      - name: PR commit count check
-        env:
           COMMIT_COUNT: ${{ github.event.pull_request.commits }}
         run: |
-          commit_limit=40
-
-          if (( $COMMIT_COUNT > $commit_limit )); then
-            echo "You have exceeded the recommended limit of $commit_limit commits in this PR. Please fix-up your commits to make them more individually meaningful."
-            exit 1
+          failed=0
+          if [[ $DESCRIPTION == *"Describe what you did and why"* ]]; then
+            echo "Please add a meaningful description to your PR."
+            failed=1
           fi
-      - name: Jira link check
-        env:
-          DESCRIPTION: ${{ github.event.pull_request.body }}
-        run: |
           if [[ $DESCRIPTION =~ https://dsdmoj.atlassian.net/browse/[A-Za-z]+-[xX]+ ]]; then
             echo "Please update the Jira link to point to the corresponding work item(s)."
+            failed=1
+          fi
+          commit_limit=40
+          if (( $COMMIT_COUNT > $commit_limit )); then
+            echo "You have exceeded the recommended limit of $commit_limit commits in this PR. Please fix-up your commits to make them more individually meaningful."
+            failed=1
+          fi
+          if ($failed = 1); then
             exit 1
           fi
+          
 
