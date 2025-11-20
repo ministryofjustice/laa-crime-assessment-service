@@ -16,10 +16,11 @@ java {
 }
 
 def versions = [
-    sentry              : "8.23.0",
-    resilience4j        : "2.3.0",
-    crimeCommonsClasses : "4.22.0",
-    commonsModSchemas   : "1.39.0"
+    sentry                      : "8.23.0",
+    resilience4j                : "2.3.0",
+    mapstruct                   : "1.6.3",
+    crimeCommonsClasses         : "4.23.0",
+    crimeCommonsModSchemas      : "1.40.0"
 ]
 
 repositories {
@@ -51,6 +52,8 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
     implementation "org.springframework.boot:spring-boot-starter-security"
 
+    implementation "org.mapstruct:mapstruct:$versions.mapstruct"
+
     // Database
     implementation 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
@@ -69,23 +72,27 @@ dependencies {
 
     // Crime Commons
     implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"
-    implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.commonsModSchemas"
-    
+    implementation "uk.gov.justice.service.laa-crime:crime-commons-mod-schemas:$versions.crimeCommonsModSchemas"
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
     testImplementation 'com.h2database:h2:2.4.240'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    
+
+    testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.10.6'
+
     // Documentation
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6"
     
     compileOnly 'org.projectlombok:lombok:1.18.38'
-    
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
     testCompileOnly "org.projectlombok:lombok:1.18.38"
     testAnnotationProcessor "org.projectlombok:lombok:1.18.38"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:$versions.mapstruct"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:$versions.mapstruct"
 }
 
 tasks.named('test') {
@@ -110,8 +117,10 @@ jacocoTestCoverageVerification {
                         'uk.gov.justice.laa.crime.assessmentservice.ServicesConfiguration',
                         'uk.gov.justice.laa.crime.assessmentservice.WebClientsConfiguration',
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.*',
                         'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
                         'uk.gov.justice.laa.crime.assessmentservice.common.filter.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.exception.*',
                         'uk.gov.justice.laa.crime.assessmentservice.config.*'
             ]
             limit {
