@@ -27,7 +27,8 @@ jobs:
             echo "You have exceeded the recommended limit of $commit_limit commits in this PR. Please fix-up your commits to make them more individually meaningful."
             failed=1
           fi
-          if ($failed == 1); then
+          echo "The failed value: $failed"
+          if (( $failed == 1 )); then
             exit 1
           fi
           
