@@ -33,6 +33,10 @@ spring:
       resource-server:
         jwt:
           issuer-uri: ${JWT_ISSUER_URI}
+  mvc:
+    problemdetails:
+      enabled: true
+
 
 server:
   port: 8091
