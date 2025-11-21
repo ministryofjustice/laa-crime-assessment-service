@@ -15,7 +15,7 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           failed=0
-          if ! [[ $TITLE =~ ^[\w]{4}-[\d]+ - .*$ ]]; then
+          if ! [[ $TITLE =~ ^(WIP: )?[\w]{4}-[\d]+ - .*$ ]]; then
             echo "Please update the Title to match the form: [Ticket Prefix]-[Ticket Number] - [Description]."
             echo "E.g. LCAM-1234 - Fixes fatal error"
             failed=1
