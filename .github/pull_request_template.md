@@ -14,5 +14,5 @@ Before you ask people to review this PR:
 - [ ] All of the pull request triggered checks (such as Build and Test, CodeQL and Snyk) have passed.
 - [ ] Nothing unexpected is included in the changes when compared to the main branch.
 - [ ] The commit messages have meaningful descriptions.
-- [ ] The readme has been updated to reflect the changes made.
+- [ ] Relevant areas in the documentation have been updated to reflect the changes.
 - [ ] There has been no regressions in the [Functional Test Suite](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions) when run in the TEST environment.
