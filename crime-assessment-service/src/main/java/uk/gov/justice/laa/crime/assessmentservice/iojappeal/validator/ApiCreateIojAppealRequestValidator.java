@@ -25,18 +25,19 @@ public class ApiCreateIojAppealRequestValidator {
 
     public static final String METADATA = "Metadata";
     public static final String CASE_MANAGEMENT_UNIT = "Case Management Unit";
-    public static final String APP_IDS = "Both Application Id and Legacy Application Id";
+    public static final String LEGACY_APPLICATION_ID = "Legacy Application Id";
     public static final String USER_SESSION = "User Session";
     public static final String SESSION_ID = "Session ID";
     public static final String USERNAME = "Username";
 
     public static final String APPEAL = "Appeal";
-    public static final String APPEAL_DECISION = "Appeal Decision";
+    public static final String APPEAL_SUCCESSFUL = "Appeal Successful";
     public static final String APPEAL_ASSESSOR = "Appeal Assessor";
     public static final String APPEAL_REASON = "Appeal Reason";
     public static final String DECISION_REASON = "Decision Reason";
     public static final String DECISION_DATE = "Decision Date";
     public static final String RECEIVED_DATE = "Received Date";
+    public static final String APPLICATION_RECEIVED_DATE = "Application Received Date";
     public static final String APPEAL_REASON_HARDIOJ = "HARDIOJ";
 
     public List<String> validateRequest(ApiCreateIojAppealRequest request) {
@@ -59,15 +60,9 @@ public class ApiCreateIojAppealRequestValidator {
             return;
         }
         validateFieldNotEmpty(metadata.getCaseManagementUnitId(), CASE_MANAGEMENT_UNIT, errorList);
-        validateOneApplicationIdPresent(metadata, errorList);
+        validateFieldNotEmpty(metadata.getLegacyApplicationId(), LEGACY_APPLICATION_ID, errorList);
+        validateFieldNotEmpty(metadata.getApplicationReceivedDate(), APPLICATION_RECEIVED_DATE, errorList);
         validateUserSession(metadata.getUserSession(), errorList);
-    }
-
-    // Ensure that we have an application ID. Either LegacyApplicationId, or ApplicationId must be present.
-    private void validateOneApplicationIdPresent(IojAppealMetadata metadata, List<String> errorList) {
-        if (Objects.isNull(metadata.getApplicationId()) && Objects.isNull(metadata.getLegacyApplicationId())) {
-            errorList.add(getMissingFieldErrorText(APP_IDS));
-        }
     }
 
     // ensure the username/session id are present in usersession.
@@ -87,7 +82,7 @@ public class ApiCreateIojAppealRequestValidator {
             errorList.add(getMissingFieldErrorText(APPEAL));
             return;
         }
-        validateFieldNotEmpty(appeal.getAppealDecision(), APPEAL_DECISION, errorList);
+        validateFieldNotEmpty(appeal.getAppealSuccessful(), APPEAL_SUCCESSFUL, errorList);
         validateFieldNotEmpty(appeal.getAppealAssessor(), APPEAL_ASSESSOR, errorList);
         validateFieldNotEmpty(appeal.getAppealReason(), APPEAL_REASON, errorList);
         validateFieldNotEmpty(appeal.getDecisionReason(), DECISION_REASON, errorList);

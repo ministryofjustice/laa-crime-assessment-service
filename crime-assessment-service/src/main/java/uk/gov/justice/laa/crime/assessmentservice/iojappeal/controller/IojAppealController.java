@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,6 +61,16 @@ public class IojAppealController implements IojAppealApi {
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        var appealEntity = iojAppealService.createIojAppeal(request);
+        var legacyAppealId = legacyIojAppealService.create(appealEntity);
+
+        // update the appealEntity with legacy id and save.
+        appealEntity.setLegacyAppealId(legacyAppealId);
+        iojAppealService.saveIojAppeal(appealEntity);
+
+        var response = new ApiCreateIojAppealResponse();
+        response.setAppealId(appealEntity.getAppealId().toString());
+        response.setLegacyAppealId(legacyAppealId);
+        return ResponseEntity.ok(response);
     }
 }
