@@ -8,12 +8,11 @@ Describe what you did and why.
 
 Before you ask people to review this PR:
 
-- [ ] Tests should be passing: `./gradlew test`
-- [ ] Github should not be reporting conflicts; you should have recently run `git rebase main`.
-- [ ] Avoid mixing whitespace changes with code changes in the same commit. These make diffs harder to read and conflicts more likely.
-- [ ] You should have looked at the diff against main and ensured that nothing unexpected is included in your changes.
-- [ ] You should have checked that the commit messages say why the change was made.
-
-## Additional checks
-
-- Don’t forget to [run](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions/workflows/ExecuteUiTests.yaml) the MAAT functional test suite after deploying your changes to the DEV or TEST environments to ensure your changes haven’t broken any of the functional tests.
+- [ ] The pull request is not labelled as *WIP/DRAFT* and has a title format of *LCAM/LASB-XXXX - Description*.
+- [ ] A link to the Jira ticket is provided along with a description giving context and rationale for the changes.
+- [ ] Github is not reporting any conflicts with the main branch.
+- [ ] All of the pull request triggered checks (such as Build and Test, CodeQL and Snyk) have passed.
+- [ ] Nothing unexpected is included in the changes when compared to the main branch.
+- [ ] The commit messages have meaningful descriptions.
+- [ ] Relevant areas in the documentation have been updated to reflect the changes.
+- [ ] There has been no regressions in the [Functional Test Suite](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions) when run in the TEST environment.
