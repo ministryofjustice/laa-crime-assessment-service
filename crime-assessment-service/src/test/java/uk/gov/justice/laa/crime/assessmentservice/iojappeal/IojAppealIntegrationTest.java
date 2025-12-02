@@ -4,6 +4,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,6 +17,7 @@ import uk.gov.justice.laa.crime.assessmentservice.CrimeAssessmentTestConfigurati
 import uk.gov.justice.laa.crime.assessmentservice.common.dto.maat.IojAppealDTO;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
@@ -34,6 +37,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -79,12 +83,16 @@ class IojAppealIntegrationTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @MockitoSpyBean
+    IojAppealService iojAppealService;
+
     @BeforeEach
     void setup() throws JsonProcessingException {
         stubForOAuth();
         this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
                 .addFilter(springSecurityFilterChain)
                 .build();
+        iojAppealRepository.deleteAll();
     }
 
     @Test
@@ -199,15 +207,54 @@ class IojAppealIntegrationTest {
 
         // verify we've created.
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount + 1);
-        assertThat(iojAppealRepository.findIojAppealByAppealId(UUID.fromString(appealId)))
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("legacyAppealId", legacyAppealId);
-        assertThat(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId))
-                .isNotNull();
+        verifySavedIds(appealId, legacyAppealId);
+    }
+
+    @Test
+    void givenMaatFailure_whenCreateIsInvoked_thenNothingWritten() throws Exception {
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var initialAppealCount = iojAppealRepository.count();
+        wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL)).willReturn(WireMock.serverError()));
+        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is5xxServerError())
+                .andExpect(content().contentType(APPLICATION_JSON));
+        // ensure we've rolled back the DB write
+        assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
+    }
+
+    @Test
+    void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsWritten() throws Exception {
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var initialAppealCount = iojAppealRepository.count();
+        var response = new IojAppealDTO();
+        response.setId(1001);
+        doThrow(new RuntimeException("Test Exception"))
+                .when(iojAppealService)
+                .saveIojAppeal(any(IojAppealEntity.class));
+
+        wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL))
+                .willReturn(WireMock.ok()
+                        .withHeader("Content-Type", String.valueOf(APPLICATION_JSON))
+                        .withBody(objectMapper.writeValueAsString(response))));
+
+        MvcResult result = mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn();
+        String appealId = JsonPath.read(result.getResponse().getContentAsString(), "$.appealId");
+        Integer legacyAppealId = JsonPath.read(result.getResponse().getContentAsString(), "$.legacyAppealId");
+        // verify we've created. A failure in step 3 is not currently a rollback.
+        assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount + 1);
+        verifySavedIds(appealId, legacyAppealId);
     }
 
     private void setupEntity(IojAppealEntity iojAppealEntity) {
-        iojAppealRepository.deleteAll();
         iojAppealRepository.save(iojAppealEntity);
     }
 
@@ -220,5 +267,13 @@ class IojAppealIntegrationTest {
                 .willReturn(WireMock.ok()
                         .withHeader("Content-Type", String.valueOf(APPLICATION_JSON))
                         .withBody(mapper.writeValueAsString(token))));
+    }
+
+    private void verifySavedIds(String appealId, Integer legacyAppealId) {
+        assertThat(iojAppealRepository.findIojAppealByAppealId(UUID.fromString(appealId)))
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("legacyAppealId", legacyAppealId);
+        assertThat(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId))
+                .isNotNull();
     }
 }
