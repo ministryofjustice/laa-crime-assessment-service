@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.common.forCommonClasses.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;

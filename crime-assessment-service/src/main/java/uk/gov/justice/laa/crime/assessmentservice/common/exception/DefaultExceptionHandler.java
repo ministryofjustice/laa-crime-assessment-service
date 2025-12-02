@@ -2,13 +2,17 @@ package uk.gov.justice.laa.crime.assessmentservice.common.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.justice.laa.crime.assessmentservice.common.forCommonClasses.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.common.forCommonClasses.CrimeValidationExceptionUtil;
 import uk.gov.justice.laa.crime.dto.ErrorDTO;
 import uk.gov.justice.laa.crime.exception.ValidationException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,6 +48,11 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorDTO> handleValidationException(ValidationException exception) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(CrimeValidationException.class)
+    public ResponseEntity<ProblemDetail> handleCrimeValidationException(CrimeValidationException ex) {
+        return CrimeValidationExceptionUtil.buildValidationErrorResponse(new ArrayList<>(ex.getExceptionMessage()));
     }
 
     private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
