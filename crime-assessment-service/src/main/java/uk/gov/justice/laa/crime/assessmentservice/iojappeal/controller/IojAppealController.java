@@ -1,7 +1,5 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +53,6 @@ public class IojAppealController implements IojAppealApi {
     }
 
     @PostMapping
-    @Operation(description = "Create a new IoJ Appeal")
-    @ApiResponse(responseCode = "501")
     public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
         List<String> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (!validationErrors.isEmpty()) {
