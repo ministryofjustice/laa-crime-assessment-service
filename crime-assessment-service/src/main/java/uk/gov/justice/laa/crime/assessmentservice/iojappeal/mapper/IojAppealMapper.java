@@ -39,6 +39,8 @@ public abstract class IojAppealMapper {
         var appealEntity = mapAppealToEntity(request.getIojAppeal());
         appealEntity.setLegacyApplicationId(request.getIojAppealMetadata().getLegacyApplicationId());
         appealEntity.setCaseManagementUnitId(request.getIojAppealMetadata().getCaseManagementUnitId());
+        appealEntity.setCreatedBy(
+                request.getIojAppealMetadata().getUserSession().getUserName());
         return appealEntity;
     }
 
@@ -55,7 +57,7 @@ public abstract class IojAppealMapper {
                         .getCode())
                 .nworCode(entity.getAppealReason())
                 .notes(entity.getNotes())
-                .userCreated("TODO") // TODO Whomst?
+                .userCreated(entity.getCreatedBy())
                 .build();
     }
 

@@ -26,6 +26,7 @@ public class TestDataBuilder {
         appeal.setDecisionReason(IojAppealDecisionReason.INTERESTS_PERSON);
         appeal.setReceivedDate(LocalDateTime.now());
         appeal.setDecisionDate(LocalDateTime.now());
+        appeal.setNotes("Notes are Here");
 
         var metaData = new IojAppealMetadata();
         metaData.setApplicationReceivedDate(LocalDate.now().minusDays(7));
@@ -53,7 +54,7 @@ public class TestDataBuilder {
                 .notes("Passing IoJ Appeal")
                 .decisionDate(LocalDate.of(2025, 2, 8))
                 .caseManagementUnitId(44)
-                .createdBy("test")
+                .createdBy("tester")
                 .appealId((setRandomId ? UUID.randomUUID() : null))
                 .build();
     }

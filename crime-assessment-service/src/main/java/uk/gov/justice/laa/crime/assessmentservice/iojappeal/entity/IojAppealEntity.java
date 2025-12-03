@@ -63,7 +63,7 @@ public class IojAppealEntity {
 
     @Builder.Default
     @Column(name = "created_by")
-    private String createdBy = "TODO";
+    private String createdBy = "default";
 
     @CreatedDate
     @Builder.Default

@@ -24,10 +24,10 @@ class IoJAppealMapperTest {
     @Test
     void givenAppealEntity_whenMapEntityToCreateRequest_thenRequestIsCorrectlyMapped() {
         IojAppealEntity entity = TestDataBuilder.buildIojAppealEntity(true);
+        var request = iojAppealMapper.mapEntityToCreateAppealRequest(entity);
         // with full entity built, all should be mapped.
-        assertThat(iojAppealMapper.mapEntityToCreateAppealRequest(entity))
-                .isNotNull()
-                .hasNoNullFieldsOrProperties();
+        assertThat(request).isNotNull().hasNoNullFieldsOrProperties();
+        assertThat(request.getUserCreated()).isEqualTo(entity.getCreatedBy());
     }
 
     // Appeal Reason/Assessor Combination Tests
@@ -54,5 +54,18 @@ class IoJAppealMapperTest {
         } else {
             assertThat(request.getDecisionResult()).isEqualTo(IojAppealDecision.FAIL.name());
         }
+    }
+
+    @Test
+    void whenCreateRequest_whenMapCreateAppealToEntity_thenAllFieldsMapped() {
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var entity = iojAppealMapper.mapCreateAppealToEntity(request);
+        // check only nulls are known, non-mapped fields.
+        assertThat(entity)
+                .isNotNull()
+                .hasNoNullFieldsOrPropertiesExcept(
+                        "appealId", "legacyAppealId", "modifiedBy", "modifiedDate", "isCurrent");
+        assertThat(entity.getCreatedBy())
+                .isEqualTo(request.getIojAppealMetadata().getUserSession().getUserName());
     }
 }
