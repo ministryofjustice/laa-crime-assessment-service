@@ -25,7 +25,9 @@ class IoJAppealMapperTest {
     void givenAppealEntity_whenMapEntityToCreateRequest_thenRequestIsCorrectlyMapped() {
         IojAppealEntity entity = TestDataBuilder.buildIojAppealEntity(true);
         // with full entity built, all should be mapped.
-        assertThat(iojAppealMapper.mapEntityToCreateAppealRequest(entity)).isNotNull().hasNoNullFieldsOrProperties();
+        assertThat(iojAppealMapper.mapEntityToCreateAppealRequest(entity))
+                .isNotNull()
+                .hasNoNullFieldsOrProperties();
     }
 
     // Appeal Reason/Assessor Combination Tests
