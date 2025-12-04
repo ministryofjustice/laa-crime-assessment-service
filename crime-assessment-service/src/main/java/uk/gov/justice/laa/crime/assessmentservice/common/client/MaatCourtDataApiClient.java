@@ -1,7 +1,7 @@
 package uk.gov.justice.laa.crime.assessmentservice.common.client;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.maat.CreateIojAppealRequest;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.maat.IojAppealDTO;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,5 +16,5 @@ public interface MaatCourtDataApiClient {
     ApiGetIojAppealResponse getIojAppeal(@PathVariable Integer legacyAppealId);
 
     @PostExchange("/api/internal/v1/assessment/ioj-appeal")
-    IojAppealDTO createIojAppeal(@RequestBody CreateIojAppealRequest request);
+    ApiCreateIojAppealResponse createIojAppeal(@RequestBody ApiCreateIojAppealRequest request);
 }

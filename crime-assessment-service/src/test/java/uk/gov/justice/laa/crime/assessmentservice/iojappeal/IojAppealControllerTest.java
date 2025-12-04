@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.MixedTransactionService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
@@ -40,7 +40,7 @@ class IojAppealControllerTest {
     private LegacyIojAppealService legacyIojAppealService;
 
     @MockitoBean
-    private MixedTransactionService mixedTransactionService;
+    private IojAppealDualWriteService iojAppealDualWriteService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -92,7 +92,7 @@ class IojAppealControllerTest {
         var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         var mockEntity = TestDataBuilder.buildIojAppealEntity(true);
         mockEntity.setAppealId(UUID.randomUUID());
-        when(mixedTransactionService.createIojAppeal(request)).thenReturn(mockEntity);
+        when(iojAppealDualWriteService.createIojAppeal(request)).thenReturn(mockEntity);
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))

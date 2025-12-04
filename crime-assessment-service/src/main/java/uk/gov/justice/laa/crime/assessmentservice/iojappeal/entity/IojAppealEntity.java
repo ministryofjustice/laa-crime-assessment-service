@@ -77,8 +77,8 @@ public class IojAppealEntity {
     private LocalDateTime modifiedDate;
 
     @Column(name = "is_current")
-    private Boolean isCurrent;
+    private boolean isCurrent;
 
     @Column(name = "is_passed")
-    private Boolean isPassed;
+    private boolean isPassed;
 }

@@ -27,13 +27,13 @@ public class IojAppealService {
                 .map(iojAppealMapper::mapEntityToDTO);
     }
 
-    public IojAppealEntity createIojAppeal(ApiCreateIojAppealRequest request) {
-        IojAppealEntity iojAppealEntity = iojAppealMapper.mapCreateAppealToEntity(request);
+    public IojAppealEntity create(ApiCreateIojAppealRequest request) {
+        IojAppealEntity iojAppealEntity = iojAppealMapper.mapCreateAppealRequestToEntity(request);
         iojAppealRepository.save(iojAppealEntity);
         return iojAppealEntity;
     }
 
-    public IojAppealEntity saveIojAppeal(IojAppealEntity iojAppealEntity) {
+    public IojAppealEntity save(IojAppealEntity iojAppealEntity) {
         return iojAppealRepository.save(iojAppealEntity);
     }
 }

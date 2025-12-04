@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.MixedTransactionService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -32,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IojAppealController implements IojAppealApi {
 
     private final IojAppealService iojAppealService;
-    private final MixedTransactionService mixedTransactionService;
+    private final IojAppealDualWriteService iojAppealDualWriteService;
     private final LegacyIojAppealService legacyIojAppealService;
 
     @GetMapping(path = "/{appealId}")
@@ -59,11 +60,11 @@ public class IojAppealController implements IojAppealApi {
             throw new CrimeValidationException(validationErrors);
         }
         // Call dual-write method.
-        var appealEntity = mixedTransactionService.createIojAppeal(request);
+        IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
 
-        var response = new ApiCreateIojAppealResponse();
-        response.setAppealId(appealEntity.getAppealId().toString());
-        response.setLegacyAppealId(appealEntity.getLegacyAppealId());
+        ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
+                .withAppealId(appealEntity.getAppealId().toString())
+                .withLegacyAppealId(appealEntity.getLegacyAppealId());
         return ResponseEntity.ok(response);
     }
 }
