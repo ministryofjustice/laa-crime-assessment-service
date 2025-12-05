@@ -27,7 +27,7 @@ public abstract class IojAppealMapper {
     public abstract IojAppealEntity mapAppealToEntity(IojAppeal iojAppeal);
 
     public IojAppealEntity mapCreateAppealRequestToEntity(ApiCreateIojAppealRequest request) {
-        var appealEntity = mapAppealToEntity(request.getIojAppeal());
+        IojAppealEntity appealEntity = mapAppealToEntity(request.getIojAppeal());
         appealEntity.setLegacyApplicationId(request.getIojAppealMetadata().getLegacyApplicationId());
         appealEntity.setCaseManagementUnitId(request.getIojAppealMetadata().getCaseManagementUnitId());
         appealEntity.setCreatedBy(
