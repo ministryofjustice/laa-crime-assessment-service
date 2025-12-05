@@ -12,9 +12,9 @@ import org.springframework.web.service.annotation.PostExchange;
 
 @HttpExchange()
 public interface MaatCourtDataApiClient {
-    @GetExchange("/api/internal/v2/assessment/ioj-appeal/{legacyAppealId}")
+    @GetExchange("/api/internal/v2/assessment/ioj-appeals/{legacyAppealId}")
     ApiGetIojAppealResponse getIojAppeal(@PathVariable Integer legacyAppealId);
 
-    @PostExchange("/api/internal/v2/assessment/ioj-appeal")
+    @PostExchange("/api/internal/v2/assessment/ioj-appeals")
     ApiCreateIojAppealResponse createIojAppeal(@RequestBody ApiCreateIojAppealRequest request);
 }
