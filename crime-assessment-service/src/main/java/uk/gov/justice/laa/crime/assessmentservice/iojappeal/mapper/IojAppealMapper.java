@@ -8,7 +8,6 @@ import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import org.mapstruct.Builder;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
@@ -20,10 +19,8 @@ import org.mapstruct.ReportingPolicy;
         builder = @Builder(disableBuilder = true))
 public abstract class IojAppealMapper {
 
-    @Mapping(target = "appealSuccessful", source = "iojAppealEntity.passed")
     public abstract ApiGetIojAppealResponse mapEntityToDTO(IojAppealEntity iojAppealEntity);
 
-    @Mapping(target = "passed", source = "iojAppeal.appealSuccessful")
     public abstract IojAppealEntity mapAppealToEntity(IojAppeal iojAppeal);
 
     public IojAppealEntity mapCreateAppealRequestToEntity(ApiCreateIojAppealRequest request) {

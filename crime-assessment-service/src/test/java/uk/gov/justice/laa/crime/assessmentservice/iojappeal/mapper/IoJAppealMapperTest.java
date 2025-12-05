@@ -12,7 +12,7 @@ class IoJAppealMapperTest {
 
     @Test
     void whenCreateRequest_whenMapCreateAppealToEntity_thenAllFieldsMapped() {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var entity = iojAppealMapper.mapCreateAppealRequestToEntity(request);
         // check only nulls are known, non-mapped fields.
         assertThat(entity)

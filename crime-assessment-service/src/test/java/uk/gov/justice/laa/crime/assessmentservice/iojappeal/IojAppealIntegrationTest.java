@@ -118,12 +118,12 @@ class IojAppealIntegrationTest {
                 .andExpect(jsonPath("$.appealId")
                         .value(iojAppealEntity.getAppealId().toString()))
                 .andExpect(jsonPath("$.legacyAppealId").value(iojAppealEntity.getLegacyAppealId()))
-                .andExpect(jsonPath("$.receivedDate").value("2025-02-01T00:00:00"))
+                .andExpect(jsonPath("$.receivedDate").value("2025-02-01"))
                 .andExpect(jsonPath("$.appealAssessor").value(iojAppealEntity.getAppealAssessor()))
-                .andExpect(jsonPath("$.appealSuccessful").value(iojAppealEntity.isPassed()))
+                .andExpect(jsonPath("$.appealSuccessful").value(iojAppealEntity.isAppealSuccessful()))
                 .andExpect(jsonPath("$.decisionReason").value(IojAppealDecisionReason.DAMAGE_TO_REPUTATION.getCode()))
                 .andExpect(jsonPath("$.notes").value(iojAppealEntity.getNotes()))
-                .andExpect(jsonPath("$.decisionDate").value("2025-02-08T00:00:00"))
+                .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
     }
 
@@ -139,12 +139,12 @@ class IojAppealIntegrationTest {
                 .andExpect(jsonPath("$.appealId")
                         .value(iojAppealEntity.getAppealId().toString()))
                 .andExpect(jsonPath("$.legacyAppealId").value(iojAppealEntity.getLegacyAppealId()))
-                .andExpect(jsonPath("$.receivedDate").value("2025-02-01T00:00:00"))
+                .andExpect(jsonPath("$.receivedDate").value("2025-02-01"))
                 .andExpect(jsonPath("$.appealAssessor").value(iojAppealEntity.getAppealAssessor()))
-                .andExpect(jsonPath("$.appealSuccessful").value(iojAppealEntity.isPassed()))
+                .andExpect(jsonPath("$.appealSuccessful").value(iojAppealEntity.isAppealSuccessful()))
                 .andExpect(jsonPath("$.decisionReason").value(IojAppealDecisionReason.DAMAGE_TO_REPUTATION.getCode()))
                 .andExpect(jsonPath("$.notes").value(iojAppealEntity.getNotes()))
-                .andExpect(jsonPath("$.decisionDate").value("2025-02-08T00:00:00"))
+                .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
     }
 
@@ -153,13 +153,13 @@ class IojAppealIntegrationTest {
         ApiGetIojAppealResponse response = new ApiGetIojAppealResponse()
                 .withAppealId(APPEAL_ID.toString())
                 .withLegacyAppealId(223)
-                .withReceivedDate(LocalDate.of(2025, 2, 1).atStartOfDay())
+                .withReceivedDate(LocalDate.of(2025, 2, 1))
                 .withAppealReason(NewWorkReason.NEW)
                 .withAppealAssessor(IojAppealAssessor.CASEWORKER)
                 .withAppealSuccessful(true)
                 .withDecisionReason(IojAppealDecisionReason.DAMAGE_TO_REPUTATION)
                 .withNotes("Passing IoJ Appeal")
-                .withDecisionDate(LocalDate.of(2025, 2, 8).atStartOfDay())
+                .withDecisionDate(LocalDate.of(2025, 2, 8))
                 .withCaseManagementUnitId(44);
 
         wiremock.stubFor(get(urlEqualTo(MAAT_API_APPEAL_URL + "/223"))
@@ -173,19 +173,19 @@ class IojAppealIntegrationTest {
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.appealId").value(response.getAppealId()))
                 .andExpect(jsonPath("$.legacyAppealId").value(response.getLegacyAppealId()))
-                .andExpect(jsonPath("$.receivedDate").value("2025-02-01T00:00:00"))
+                .andExpect(jsonPath("$.receivedDate").value("2025-02-01"))
                 .andExpect(jsonPath("$.appealAssessor")
                         .value(response.getAppealAssessor().toString()))
                 .andExpect(jsonPath("$.appealSuccessful").value(response.getAppealSuccessful()))
                 .andExpect(jsonPath("$.decisionReason").value(IojAppealDecisionReason.DAMAGE_TO_REPUTATION.getCode()))
                 .andExpect(jsonPath("$.notes").value(response.getNotes()))
-                .andExpect(jsonPath("$.decisionDate").value("2025-02-08T00:00:00"))
+                .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(response.getCaseManagementUnitId()));
     }
 
     @Test
     void givenValidCreateRequest_whenCreateIsInvoked_thenSuccess() throws Exception {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         var response = new ApiCreateIojAppealResponse().withLegacyAppealId(1001);
 
@@ -211,7 +211,7 @@ class IojAppealIntegrationTest {
 
     @Test
     void givenMaatFailure_whenCreateIsInvoked_thenNothingWritten() throws Exception {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL)).willReturn(WireMock.serverError()));
         mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL)
@@ -226,7 +226,7 @@ class IojAppealIntegrationTest {
 
     @Test
     void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsWritten() throws Exception {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         var response = new ApiCreateIojAppealResponse().withLegacyAppealId(1001);
         doThrow(new RuntimeException("Test Exception")).when(iojAppealService).save(any(IojAppealEntity.class));

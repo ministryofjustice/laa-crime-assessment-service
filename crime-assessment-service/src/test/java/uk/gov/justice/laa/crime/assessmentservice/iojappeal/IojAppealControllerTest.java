@@ -89,7 +89,7 @@ class IojAppealControllerTest {
 
     @Test
     void givenEndpoint_whenCreateEndpointCalledWithValidRequest_thenOkResponseWithIds() throws Exception {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var mockEntity = TestDataBuilder.buildIojAppealEntity(true);
         mockEntity.setAppealId(UUID.randomUUID());
         when(iojAppealDualWriteService.createIojAppeal(request)).thenReturn(mockEntity);

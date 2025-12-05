@@ -11,21 +11,20 @@ import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @UtilityClass
 public class TestDataBuilder {
 
-    public ApiCreateIojAppealRequest buildValidPopulatedCreateIoJAppealRequest() {
+    public ApiCreateIojAppealRequest buildValidPopulatedCreateIojAppealRequest() {
         ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
         var appeal = new IojAppeal();
         appeal.setAppealSuccessful(true);
         appeal.setAppealReason(NewWorkReason.JR);
         appeal.setAppealAssessor(IojAppealAssessor.JUDGE);
         appeal.setDecisionReason(IojAppealDecisionReason.INTERESTS_PERSON);
-        appeal.setReceivedDate(LocalDateTime.now());
-        appeal.setDecisionDate(LocalDateTime.now());
+        appeal.setReceivedDate(LocalDate.now());
+        appeal.setDecisionDate(LocalDate.now());
         appeal.setNotes("Notes are Here");
 
         var metaData = new IojAppealMetadata();
@@ -49,7 +48,7 @@ public class TestDataBuilder {
                 .receivedDate(LocalDate.of(2025, 2, 1))
                 .appealReason(NewWorkReason.NEW.getCode())
                 .appealAssessor(IojAppealAssessor.CASEWORKER.name())
-                .isPassed(true)
+                .appealSuccessful(true)
                 .decisionReason("DAMAGE_TO_REPUTATION")
                 .notes("Passing IoJ Appeal")
                 .decisionDate(LocalDate.of(2025, 2, 8))
