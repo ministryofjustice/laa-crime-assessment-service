@@ -1,6 +1,23 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_REASON;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_SUCCESSFUL;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPLICATION_RECEIVED_DATE;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.CASE_MANAGEMENT_UNIT;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.DECISION_DATE;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.DECISION_REASON;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.METADATA;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.RECEIVED_DATE;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.REQUEST;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.SESSION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.USERNAME;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.USER_SESSION;
+
 import lombok.experimental.UtilityClass;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields;
 import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
@@ -20,24 +37,7 @@ public class ApiCreateIojAppealRequestValidator {
     public static final String ERROR_FIELD_IS_MISSING = "%s is missing.";
     public static final String ERROR_INCORRECT_COMBINATION = "Incorrect Combination of Assessor and Reason.";
     public static final String ERROR_APPEAL_REASON_IS_INVALID = "Appeal Reason is invalid.";
-    // fields
-    public static final String REQUEST = "Request";
 
-    public static final String METADATA = "Metadata";
-    public static final String CASE_MANAGEMENT_UNIT = "Case Management Unit";
-    public static final String LEGACY_APPLICATION_ID = "Legacy Application Id";
-    public static final String USER_SESSION = "User Session";
-    public static final String SESSION_ID = "Session ID";
-    public static final String USERNAME = "Username";
-
-    public static final String APPEAL = "Appeal";
-    public static final String APPEAL_SUCCESSFUL = "Appeal Successful";
-    public static final String APPEAL_ASSESSOR = "Appeal Assessor";
-    public static final String APPEAL_REASON = "Appeal Reason";
-    public static final String DECISION_REASON = "Decision Reason";
-    public static final String DECISION_DATE = "Decision Date";
-    public static final String RECEIVED_DATE = "Received Date";
-    public static final String APPLICATION_RECEIVED_DATE = "Application Received Date";
     public static final String APPEAL_REASON_HARDIOJ = "HARDIOJ";
 
     public List<String> validateRequest(ApiCreateIojAppealRequest request) {
@@ -113,13 +113,14 @@ public class ApiCreateIojAppealRequestValidator {
     }
 
     // Utility Methods
-    private void validateFieldNotEmpty(Object field, String fieldName, List<String> errorList) {
+    private void validateFieldNotEmpty(
+            Object field, ApiCreateIojAppealRequestFields fieldName, List<String> errorList) {
         if (ObjectUtils.isEmpty(field)) {
             errorList.add(getMissingFieldErrorText(fieldName));
         }
     }
 
-    private String getMissingFieldErrorText(String fieldName) {
-        return String.format(ERROR_FIELD_IS_MISSING, fieldName);
+    private String getMissingFieldErrorText(ApiCreateIojAppealRequestFields fieldName) {
+        return String.format(ERROR_FIELD_IS_MISSING, fieldName.getName());
     }
 }

@@ -1,13 +1,13 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.SESSION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.USERNAME;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_APPEAL_REASON_IS_INVALID;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_INCORRECT_COMBINATION;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.LEGACY_APPLICATION_ID;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.SESSION_ID;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.USERNAME;
 
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -42,19 +42,19 @@ class ApiCreateIojAppealRequestValidatorTest {
     }
 
     @Test
-    void whenAppealAndMetaPresentButNotPopulated_thenOnlyMissingErrors() {
+    void whenAppealAndMetaPresentButNotPopulated_thenAllMissingFieldValidationErrorsReturned() {
         ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
         request.setIojAppeal(new IojAppeal());
         request.setIojAppealMetadata(new IojAppealMetadata());
-        int expectedErrorCount = 10;
+        int expectedErrorCount = 10; // 6 field validations on appeal, 4 on metadata.
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).hasSize(expectedErrorCount); // 6 field validations on appeal, 4 on metadata.
+        assertThat(returnedErrorList).hasSize(expectedErrorCount);
         assertThat(returnedErrorList.stream()
                         .filter(x -> x.contains(" is missing."))
                         .count())
                 .isEqualTo(expectedErrorCount);
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.equals(getExpectedMissingError(LEGACY_APPLICATION_ID)))
+                        .filter(x -> x.equals(getExpectedMissingError(LEGACY_APPLICATION_ID.getName())))
                         .count())
                 .isEqualTo(1);
     }
@@ -108,7 +108,7 @@ class ApiCreateIojAppealRequestValidatorTest {
         request.getIojAppeal().setAppealAssessor(null);
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR));
+        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR.getName()));
     }
 
     @ParameterizedTest
@@ -121,7 +121,8 @@ class ApiCreateIojAppealRequestValidatorTest {
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList)
                 .hasSize(2)
-                .containsExactlyInAnyOrder(getExpectedMissingError(SESSION_ID), getExpectedMissingError(USERNAME));
+                .containsExactlyInAnyOrder(
+                        getExpectedMissingError(SESSION_ID.getName()), getExpectedMissingError(USERNAME.getName()));
     }
 
     // helpers
