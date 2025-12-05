@@ -6,6 +6,8 @@ import uk.gov.justice.laa.crime.assessmentservice.common.client.MaatCourtDataApi
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapper;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import org.springframework.stereotype.Service;
@@ -29,5 +31,9 @@ public class LegacyIojAppealService {
         }
 
         return maatCourtDataApiClient.getIojAppeal(legacyAppealId);
+    }
+
+    public ApiCreateIojAppealResponse create(ApiCreateIojAppealRequest request) {
+        return maatCourtDataApiClient.createIojAppeal(request);
     }
 }

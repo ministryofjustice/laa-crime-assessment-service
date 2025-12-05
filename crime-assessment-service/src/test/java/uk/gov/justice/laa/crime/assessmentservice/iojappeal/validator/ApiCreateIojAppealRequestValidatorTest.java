@@ -1,24 +1,21 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.APPEAL_ASSESSOR;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.APP_IDS;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.SESSION_ID;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.USERNAME;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_APPEAL_REASON_IS_INVALID;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_INCORRECT_COMBINATION;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.SESSION_ID;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.USERNAME;
 
-import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
+import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
-import uk.gov.justice.laa.crime.enums.IojAppealDecision;
-import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -45,19 +42,19 @@ class ApiCreateIojAppealRequestValidatorTest {
     }
 
     @Test
-    void whenAppealAndMetaPresentButNotPopulated_thenOnlyMissingErrors() {
+    void whenAppealAndMetaPresentButNotPopulated_thenAllMissingFieldValidationErrorsReturned() {
         ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
         request.setIojAppeal(new IojAppeal());
         request.setIojAppealMetadata(new IojAppealMetadata());
+        int expectedErrorCount = 10; // 6 field validations on appeal, 4 on metadata.
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-        assertThat(returnedErrorList).hasSize(9); // 6 field validations on appeal, 3 on metadata.
+        assertThat(returnedErrorList).hasSize(expectedErrorCount);
         assertThat(returnedErrorList.stream()
                         .filter(x -> x.contains(" is missing."))
                         .count())
-                .isEqualTo(9);
-        // ensure that the applicationId/LegacyApplicationId check has failed.
+                .isEqualTo(expectedErrorCount);
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.equals(getExpectedMissingError(APP_IDS)))
+                        .filter(x -> x.equals(getExpectedMissingError(LEGACY_APPLICATION_ID.getName())))
                         .count())
                 .isEqualTo(1);
     }
@@ -77,7 +74,7 @@ class ApiCreateIojAppealRequestValidatorTest {
     @MethodSource("reasonAssessorCombinations")
     void whenIojAssessorAndReasonCombinationIsTested_thenErrorShouldSurfaceIfInvalidCombination(
             IojAppealAssessor assessor, NewWorkReason reason, boolean isValidCombination) {
-        var request = createPopulatedValidRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         request.getIojAppeal().setAppealAssessor(assessor);
         request.getIojAppeal().setAppealReason(reason);
 
@@ -97,7 +94,7 @@ class ApiCreateIojAppealRequestValidatorTest {
             mode = EnumSource.Mode.EXCLUDE)
     void whenInvalidAppealReasonSelected_thenOneError(NewWorkReason reason) {
         // Judicial Review + Judge
-        var request = createPopulatedValidRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         request.getIojAppeal().setAppealReason(reason);
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
@@ -107,50 +104,28 @@ class ApiCreateIojAppealRequestValidatorTest {
 
     @Test
     void whenValidButNoAssessor_thenOnlyMissingErrors() {
-        var request = createPopulatedValidRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         request.getIojAppeal().setAppealAssessor(null);
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR));
+        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR.getName()));
     }
 
     @ParameterizedTest
     @NullAndEmptySource // additional check to ensure validation works on empty strings and nulls
     void whenValidButNoUserSessionDetails_thenOnlyMissingErrors(String emptyOrNull) {
-        var request = createPopulatedValidRequest();
+        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         request.getIojAppealMetadata().getUserSession().setUserName(emptyOrNull);
         request.getIojAppealMetadata().getUserSession().setSessionId(emptyOrNull);
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList)
                 .hasSize(2)
-                .containsExactlyInAnyOrder(getExpectedMissingError(SESSION_ID), getExpectedMissingError(USERNAME));
+                .containsExactlyInAnyOrder(
+                        getExpectedMissingError(SESSION_ID.getName()), getExpectedMissingError(USERNAME.getName()));
     }
 
     // helpers
-    private ApiCreateIojAppealRequest createPopulatedValidRequest() {
-        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
-        var appeal = new IojAppeal();
-        appeal.setAppealDecision(IojAppealDecision.PASS);
-        appeal.setAppealReason(NewWorkReason.JR);
-        appeal.setAppealAssessor(IojAppealAssessor.JUDGE);
-        appeal.setDecisionReason(IojAppealDecisionReason.INTERESTS_PERSON);
-        appeal.setReceivedDate(LocalDateTime.now());
-        appeal.setDecisionDate(LocalDateTime.now());
-
-        var metaData = new IojAppealMetadata();
-        metaData.setApplicationId("123");
-        metaData.setLegacyApplicationId(456);
-        metaData.setCaseManagementUnitId(789);
-        var userSession = new ApiUserSession();
-        userSession.setUserName("Test User");
-        userSession.setSessionId("Test Session");
-        metaData.setUserSession(userSession);
-
-        request.setIojAppeal(appeal);
-        request.setIojAppealMetadata(metaData);
-        return request;
-    }
 
     private String getExpectedMissingError(String fieldName) {
         return String.format(ERROR_FIELD_IS_MISSING, fieldName);

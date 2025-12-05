@@ -17,6 +17,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.data.annotation.CreatedDate;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,7 +35,7 @@ public class IojAppealEntity {
     private UUID appealId;
 
     @Column(name = "legacy_appeal_id")
-    private int legacyAppealId;
+    private Integer legacyAppealId;
 
     @Column(name = "legacy_application_id")
     private int legacyApplicationId;
@@ -46,9 +48,6 @@ public class IojAppealEntity {
 
     @Column(name = "assessor")
     private String appealAssessor;
-
-    @Column(name = "appeal_decision")
-    private String appealDecision;
 
     @Column(name = "decision_reason")
     private String decisionReason;
@@ -65,12 +64,20 @@ public class IojAppealEntity {
     @Column(name = "created_by")
     private String createdBy;
 
+    @CreatedDate
+    @Builder.Default
     @Column(name = "created_at")
-    private LocalDateTime createdDate;
+    private LocalDateTime createdDate = LocalDateTime.now();
 
     @Column(name = "modified_by")
     private String modifiedBy;
 
     @Column(name = "modified_at")
     private LocalDateTime modifiedDate;
+
+    @Column(name = "is_current")
+    private boolean isCurrent;
+
+    @Column(name = "is_passed")
+    private boolean isPassed;
 }

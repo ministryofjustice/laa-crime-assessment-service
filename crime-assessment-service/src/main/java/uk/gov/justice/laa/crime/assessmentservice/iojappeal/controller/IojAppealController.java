@@ -1,11 +1,11 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IojAppealController implements IojAppealApi {
 
     private final IojAppealService iojAppealService;
-
+    private final IojAppealDualWriteService iojAppealDualWriteService;
     private final LegacyIojAppealService legacyIojAppealService;
 
     @GetMapping(path = "/{appealId}")
@@ -55,13 +54,17 @@ public class IojAppealController implements IojAppealApi {
     }
 
     @PostMapping
-    @Operation(description = "Create a new IoJ Appeal")
-    @ApiResponse(responseCode = "501")
     public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
         List<String> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        // Call dual-write method.
+        IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
+
+        ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
+                .withAppealId(appealEntity.getAppealId().toString())
+                .withLegacyAppealId(appealEntity.getLegacyAppealId());
+        return ResponseEntity.ok(response);
     }
 }

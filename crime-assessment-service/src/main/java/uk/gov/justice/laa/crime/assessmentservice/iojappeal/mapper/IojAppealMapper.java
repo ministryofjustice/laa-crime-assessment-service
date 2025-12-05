@@ -1,11 +1,14 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper;
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 
 import org.mapstruct.Builder;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
@@ -15,6 +18,20 @@ import org.mapstruct.ReportingPolicy;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED,
         builder = @Builder(disableBuilder = true))
-public interface IojAppealMapper {
-    ApiGetIojAppealResponse mapEntityToDTO(IojAppealEntity iojAppealEntity);
+public abstract class IojAppealMapper {
+
+    @Mapping(target = "appealSuccessful", source = "iojAppealEntity.passed")
+    public abstract ApiGetIojAppealResponse mapEntityToDTO(IojAppealEntity iojAppealEntity);
+
+    @Mapping(target = "passed", source = "iojAppeal.appealSuccessful")
+    public abstract IojAppealEntity mapAppealToEntity(IojAppeal iojAppeal);
+
+    public IojAppealEntity mapCreateAppealRequestToEntity(ApiCreateIojAppealRequest request) {
+        IojAppealEntity appealEntity = mapAppealToEntity(request.getIojAppeal());
+        appealEntity.setLegacyApplicationId(request.getIojAppealMetadata().getLegacyApplicationId());
+        appealEntity.setCaseManagementUnitId(request.getIojAppealMetadata().getCaseManagementUnitId());
+        appealEntity.setCreatedBy(
+                request.getIojAppealMetadata().getUserSession().getUserName());
+        return appealEntity;
+    }
 }

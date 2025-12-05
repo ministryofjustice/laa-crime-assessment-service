@@ -2,8 +2,10 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapper;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import java.util.Optional;
@@ -23,5 +25,15 @@ public class IojAppealService {
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
         return Optional.ofNullable(iojAppealRepository.findIojAppealByAppealId(appealId))
                 .map(iojAppealMapper::mapEntityToDTO);
+    }
+
+    public IojAppealEntity create(ApiCreateIojAppealRequest request) {
+        IojAppealEntity iojAppealEntity = iojAppealMapper.mapCreateAppealRequestToEntity(request);
+        iojAppealRepository.save(iojAppealEntity);
+        return iojAppealEntity;
+    }
+
+    public IojAppealEntity save(IojAppealEntity iojAppealEntity) {
+        return iojAppealRepository.save(iojAppealEntity);
     }
 }
