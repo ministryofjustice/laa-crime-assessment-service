@@ -88,7 +88,7 @@ class IojAppealControllerTest {
     }
 
     @Test
-    void givenEndpoint_whenCreateEndpointCalledWithValidRequest_then200SuccessWithIds() throws Exception {
+    void givenEndpoint_whenCreateEndpointCalledWithValidRequest_thenOkResponseWithIds() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
         var mockEntity = TestDataBuilder.buildIojAppealEntity(true);
         mockEntity.setAppealId(UUID.randomUUID());
@@ -102,7 +102,7 @@ class IojAppealControllerTest {
     }
 
     @Test
-    void givenInvalidRequest_whenCreateEndpointCalled_then400WithErrorList() throws Exception {
+    void givenInvalidRequest_whenCreateEndpointCalled_thenBadRequestWithErrorList() throws Exception {
         var request = new ApiCreateIojAppealRequest();
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
