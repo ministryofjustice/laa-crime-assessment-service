@@ -61,9 +61,8 @@ public class IojAppealEntity {
     @Column(name = "case_management_unit_id")
     private int caseManagementUnitId;
 
-    @Builder.Default
     @Column(name = "created_by")
-    private String createdBy = "default";
+    private String createdBy;
 
     @CreatedDate
     @Builder.Default
