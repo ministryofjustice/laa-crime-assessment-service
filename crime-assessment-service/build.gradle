@@ -20,7 +20,7 @@ def versions = [
     resilience4j                : "2.3.0",
     mapstruct                   : "1.6.3",
     crimeCommonsClasses         : "4.23.0",
-    crimeCommonsModSchemas      : "1.42.0"
+    crimeCommonsModSchemas      : "1.43.0"
 ]
 
 repositories {

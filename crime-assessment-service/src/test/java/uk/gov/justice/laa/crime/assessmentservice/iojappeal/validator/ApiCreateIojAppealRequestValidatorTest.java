@@ -43,11 +43,13 @@ class ApiCreateIojAppealRequestValidatorTest {
 
     @Test
     void whenAppealAndMetaPresentButNotPopulated_thenAllMissingFieldValidationErrorsReturned() {
-        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
-        request.setIojAppeal(new IojAppeal());
-        request.setIojAppealMetadata(new IojAppealMetadata());
+        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest()
+                .withIojAppeal(new IojAppeal())
+                .withIojAppealMetadata(new IojAppealMetadata());
+
         int expectedErrorCount = 10; // 6 field validations on appeal, 4 on metadata.
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+
         assertThat(returnedErrorList).hasSize(expectedErrorCount);
         assertThat(returnedErrorList.stream()
                         .filter(x -> x.contains(" is missing."))
@@ -74,7 +76,7 @@ class ApiCreateIojAppealRequestValidatorTest {
     @MethodSource("reasonAssessorCombinations")
     void whenIojAssessorAndReasonCombinationIsTested_thenErrorShouldSurfaceIfInvalidCombination(
             IojAppealAssessor assessor, NewWorkReason reason, boolean isValidCombination) {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealAssessor(assessor);
         request.getIojAppeal().setAppealReason(reason);
 
@@ -94,7 +96,7 @@ class ApiCreateIojAppealRequestValidatorTest {
             mode = EnumSource.Mode.EXCLUDE)
     void whenInvalidAppealReasonSelected_thenOneError(NewWorkReason reason) {
         // Judicial Review + Judge
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealReason(reason);
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
@@ -104,9 +106,11 @@ class ApiCreateIojAppealRequestValidatorTest {
 
     @Test
     void whenValidButNoAssessor_thenOnlyMissingErrors() {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealAssessor(null);
+
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+
         assertThat(returnedErrorList).hasSize(1);
         assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR.getName()));
     }
@@ -114,11 +118,12 @@ class ApiCreateIojAppealRequestValidatorTest {
     @ParameterizedTest
     @NullAndEmptySource // additional check to ensure validation works on empty strings and nulls
     void whenValidButNoUserSessionDetails_thenOnlyMissingErrors(String emptyOrNull) {
-        var request = TestDataBuilder.buildValidPopulatedCreateIoJAppealRequest();
+        ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppealMetadata().getUserSession().setUserName(emptyOrNull);
         request.getIojAppealMetadata().getUserSession().setSessionId(emptyOrNull);
 
         List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+
         assertThat(returnedErrorList)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(

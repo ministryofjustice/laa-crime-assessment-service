@@ -49,6 +49,9 @@ public class IojAppealEntity {
     @Column(name = "assessor")
     private String appealAssessor;
 
+    @Column(name = "is_passed")
+    private boolean appealSuccessful;
+
     @Column(name = "decision_reason")
     private String decisionReason;
 
@@ -77,7 +80,4 @@ public class IojAppealEntity {
 
     @Column(name = "is_current")
     private boolean isCurrent;
-
-    @Column(name = "is_passed")
-    private boolean isPassed;
 }
