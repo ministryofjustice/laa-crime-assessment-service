@@ -34,22 +34,8 @@ maatApi:
   baseUrl: http://laa-maat-data-api-prod.svc.cluster.local/api/internal/v1/assessment
   oauthUrl: https://maat-api-prod.auth.eu-west-2.amazoncognito.com/oauth2/token
 
-# TODO ingress config
 ingress:
-  enabled: true
-  environmentName: laa-crime-assessment-service-prod
-  className: default
-  annotations:
-    external-dns.alpha.kubernetes.io/aws-weight: "100"
-    nginx.ingress.kubernetes.io/affinity: "cookie"
-    nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
-  hosts:
-    - host: laa-crime-assessment-service-prod.apps.live.cloud-platform.service.justice.gov.uk
-      paths:
-        - path: /
-          pathType: "Prefix"
-  tls: []
-
+  enabled: false
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
