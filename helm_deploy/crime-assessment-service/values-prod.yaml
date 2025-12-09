@@ -31,7 +31,7 @@ service:
   port: 8091
 
 maatApi:
-  baseUrl: http://laa-maat-data-api-prod.svc.cluster.local/api/internal/v1/assessment
+  baseUrl: http://laa-maat-data-api.laa-maat-data-api-prod.svc.cluster.local:8090
   oauthUrl: https://maat-api-prod.auth.eu-west-2.amazoncognito.com/oauth2/token
 
 ingress:
