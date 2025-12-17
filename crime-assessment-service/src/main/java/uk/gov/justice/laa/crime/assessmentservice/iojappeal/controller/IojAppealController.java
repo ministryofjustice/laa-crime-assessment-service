@@ -62,15 +62,11 @@ public class IojAppealController implements IojAppealApi {
             throw new CrimeValidationException(validationErrors);
         }
 
-        try {
-            IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
+        IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
 
-            ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
-                .withAppealId(appealEntity.getAppealId().toString())
-                .withLegacyAppealId(appealEntity.getLegacyAppealId());
-            return ResponseEntity.ok(response);
-        } catch(AssessmentServiceException exc) {
-            return ResponseEntity.status(555).build();
-        }
+        ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
+            .withAppealId(appealEntity.getAppealId().toString())
+            .withLegacyAppealId(appealEntity.getLegacyAppealId());
+        return ResponseEntity.ok(response);
     }
 }

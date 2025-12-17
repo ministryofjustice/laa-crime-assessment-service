@@ -2,6 +2,7 @@ package uk.gov.justice.laa.crime.assessmentservice.common.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ProblemDetail;
 import uk.gov.justice.laa.crime.dto.ErrorDTO;
 import uk.gov.justice.laa.crime.exception.ValidationException;
 
@@ -44,6 +45,12 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorDTO> handleValidationException(ValidationException exception) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(AssessmentServiceException.class)
+    public ResponseEntity<ProblemDetail> handleAssessmentServiceException(AssessmentServiceException exc) {
+        // TODO: Need a new error response builder for this type in exception utils????
+        // return CrimeValidationExceptionUtil.buildValidationErrorResponse(new ArrayList<>(ex.getExceptionMessage()));
     }
 
     private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
