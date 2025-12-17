@@ -36,4 +36,8 @@ public class LegacyIojAppealService {
     public ApiCreateIojAppealResponse create(ApiCreateIojAppealRequest request) {
         return maatCourtDataApiClient.createIojAppeal(request);
     }
+
+    public void rollback(int legacyAppealId) {
+        maatCourtDataApiClient.rollbackIojAppeal(legacyAppealId);
+    }
 }
