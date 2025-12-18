@@ -1,5 +1,6 @@
 package uk.gov.justice.laa.crime.assessmentservice.common.client;
 
+import org.springframework.web.service.annotation.PatchExchange;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
@@ -17,4 +18,7 @@ public interface MaatCourtDataApiClient {
 
     @PostExchange("/api/internal/v2/assessment/ioj-appeals")
     ApiCreateIojAppealResponse createIojAppeal(@RequestBody ApiCreateIojAppealRequest request);
+
+    @PatchExchange("/api/internal/v2/assessment/ioj-appeals/rollback/{legacyAppealId}")
+    void rollbackIojAppeal(@PathVariable Integer legacyAppealId);
 }

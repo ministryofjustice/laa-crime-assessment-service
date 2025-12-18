@@ -36,4 +36,8 @@ public class IojAppealService {
     public IojAppealEntity save(IojAppealEntity iojAppealEntity) {
         return iojAppealRepository.save(iojAppealEntity);
     }
+
+    public void delete(IojAppealEntity iojAppealEntity) {
+        iojAppealRepository.delete(iojAppealEntity);
+    }
 }
