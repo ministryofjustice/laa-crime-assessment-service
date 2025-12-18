@@ -28,13 +28,11 @@ public class IojAppealDualWriteService {
             appealEntity.setLegacyAppealId(legacyAppealId);
             iojAppealService.save(appealEntity);
         } catch (Exception exc) {
-            log.error("Error encountered linking appealId %d to legacyAppealId %d",
-                appealEntity.getAppealId(), legacyAppealId);
             legacyIojAppealService.rollback(legacyAppealId);
             iojAppealService.delete(appealEntity);
             throw new AssessmentServiceException(String.format(
-                "Exception encountered during linking process, creation has been rolled back: %s",
-                exc.getMessage()));
+                "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
+                appealEntity.getAppealId().toString(), legacyAppealId, exc.getMessage()));
         }
 
         return appealEntity;

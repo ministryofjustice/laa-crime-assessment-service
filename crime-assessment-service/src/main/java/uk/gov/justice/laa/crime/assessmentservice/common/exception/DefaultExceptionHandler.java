@@ -22,13 +22,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class DefaultExceptionHandler {
+
     private final ObjectMapper mapper;
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<ErrorDTO> onRuntimeException(WebClientResponseException exception) {
         String errorMessage;
         try {
-            ErrorDTO errorDTO = mapper.readValue(exception.getResponseBodyAsString(), ErrorDTO.class);
+            ErrorDTO errorDTO = mapper.readValue(exception.getResponseBodyAsString(),
+                ErrorDTO.class);
             errorMessage = errorDTO.getMessage();
         } catch (IOException ex) {
             log.warn("Unable to read the ErrorDTO from WebClientResponseException", ex);
@@ -48,14 +50,15 @@ public class DefaultExceptionHandler {
     }
 
     @ExceptionHandler(AssessmentServiceException.class)
-    public ResponseEntity<ProblemDetail> handleAssessmentServiceException(AssessmentServiceException exc) {
-        // TODO: Need a new error response builder for this type in exception utils????
-        // return CrimeValidationExceptionUtil.buildValidationErrorResponse(new ArrayList<>(ex.getExceptionMessage()));
+    public ResponseEntity<ErrorDTO> handleAssessmentServiceException(
+        AssessmentServiceException exception) {
+        return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
     }
 
-    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
+    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status,
+        String message) {
         log.error("Exception Occurred. Status - {}, Detail - {}, TraceId - {}", status, message);
         return new ResponseEntity<>(
-                ErrorDTO.builder().code(status.toString()).message(message).build(), status);
+            ErrorDTO.builder().code(status.toString()).message(message).build(), status);
     }
 }
