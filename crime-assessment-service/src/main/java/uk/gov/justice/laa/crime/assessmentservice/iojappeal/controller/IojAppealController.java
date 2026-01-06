@@ -3,7 +3,6 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentServiceException;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
@@ -65,8 +64,8 @@ public class IojAppealController implements IojAppealApi {
         IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
 
         ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
-            .withAppealId(appealEntity.getAppealId().toString())
-            .withLegacyAppealId(appealEntity.getLegacyAppealId());
+                .withAppealId(appealEntity.getAppealId().toString())
+                .withLegacyAppealId(appealEntity.getLegacyAppealId());
         return ResponseEntity.ok(response);
     }
 }

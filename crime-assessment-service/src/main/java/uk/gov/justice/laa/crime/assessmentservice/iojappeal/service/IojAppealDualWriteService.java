@@ -31,8 +31,8 @@ public class IojAppealDualWriteService {
             legacyIojAppealService.rollback(legacyAppealId);
             iojAppealService.delete(appealEntity);
             throw new AssessmentServiceException(String.format(
-                "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
-                appealEntity.getAppealId().toString(), legacyAppealId, exc.getMessage()));
+                    "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
+                    appealEntity.getAppealId().toString(), legacyAppealId, exc.getMessage()));
         }
 
         return appealEntity;

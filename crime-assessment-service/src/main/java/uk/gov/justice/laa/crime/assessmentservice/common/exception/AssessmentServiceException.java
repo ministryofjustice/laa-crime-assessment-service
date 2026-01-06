@@ -7,5 +7,4 @@ public class AssessmentServiceException extends RuntimeException {
     public AssessmentServiceException(String exceptionMessage) {
         this.exceptionMessage = exceptionMessage;
     }
-
 }

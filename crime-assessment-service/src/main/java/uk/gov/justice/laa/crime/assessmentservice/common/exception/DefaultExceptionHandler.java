@@ -2,7 +2,6 @@ package uk.gov.justice.laa.crime.assessmentservice.common.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ProblemDetail;
 import uk.gov.justice.laa.crime.dto.ErrorDTO;
 import uk.gov.justice.laa.crime.exception.ValidationException;
 
@@ -29,8 +28,7 @@ public class DefaultExceptionHandler {
     public ResponseEntity<ErrorDTO> onRuntimeException(WebClientResponseException exception) {
         String errorMessage;
         try {
-            ErrorDTO errorDTO = mapper.readValue(exception.getResponseBodyAsString(),
-                ErrorDTO.class);
+            ErrorDTO errorDTO = mapper.readValue(exception.getResponseBodyAsString(), ErrorDTO.class);
             errorMessage = errorDTO.getMessage();
         } catch (IOException ex) {
             log.warn("Unable to read the ErrorDTO from WebClientResponseException", ex);
@@ -50,15 +48,13 @@ public class DefaultExceptionHandler {
     }
 
     @ExceptionHandler(AssessmentServiceException.class)
-    public ResponseEntity<ErrorDTO> handleAssessmentServiceException(
-        AssessmentServiceException exception) {
+    public ResponseEntity<ErrorDTO> handleAssessmentServiceException(AssessmentServiceException exception) {
         return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
     }
 
-    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status,
-        String message) {
+    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
         log.error("Exception Occurred. Status - {}, Detail - {}, TraceId - {}", status, message);
         return new ResponseEntity<>(
-            ErrorDTO.builder().code(status.toString()).message(message).build(), status);
+                ErrorDTO.builder().code(status.toString()).message(message).build(), status);
     }
 }
