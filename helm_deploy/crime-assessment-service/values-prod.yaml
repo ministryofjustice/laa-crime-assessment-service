@@ -25,31 +25,16 @@ serviceAccount:
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 8091
+  port: 80
+  targetPort: 8091
 
 maatApi:
-  baseUrl: https://laa-maat-data-api-prod.apps.live.cloud-platform.service.justice.gov.uk/api/internal/v1/assessment
+  baseUrl: http://laa-maat-data-api.laa-maat-data-api-prod.svc.cluster.local:8090
   oauthUrl: https://maat-api-prod.auth.eu-west-2.amazoncognito.com/oauth2/token
 
-# TODO ingress config
 ingress:
-  enabled: true
-  environmentName: laa-crime-assessment-service-prod
-  className: default
-  annotations:
-    external-dns.alpha.kubernetes.io/aws-weight: "100"
-    nginx.ingress.kubernetes.io/affinity: "cookie"
-    nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
-  hosts:
-    - host: laa-crime-assessment-service-prod.apps.live.cloud-platform.service.justice.gov.uk
-      paths:
-        - path: /
-          pathType: "Prefix"
-  tls: []
-
+  enabled: false
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:

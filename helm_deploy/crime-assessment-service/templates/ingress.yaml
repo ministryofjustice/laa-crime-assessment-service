@@ -1,3 +1,4 @@
+{{- if .Values.ingress.enabled -}}
 {{- $fullName := include "crime-assessment-service.fullname" . -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
@@ -61,3 +62,4 @@ spec:
                   number: {{ $.Values.actuator.port }}
           {{- end }}
     {{- end }}
+{{- end }}
