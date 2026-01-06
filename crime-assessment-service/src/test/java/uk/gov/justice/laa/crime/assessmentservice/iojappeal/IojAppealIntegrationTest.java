@@ -69,7 +69,8 @@ class IojAppealIntegrationTest {
     private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + TestConstants.APPEAL_ID;
     private static final String ENDPOINT_URL_FIND_LEGACY = ENDPOINT_URL + "/lookup-by-legacy-id";
     private static final String MAAT_API_APPEAL_URL = "/api/internal/v2/assessment/ioj-appeals";
-    private static final String MAAT_API_APPEAL_ROLLBACK_URL = MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
+    private static final String MAAT_API_APPEAL_ROLLBACK_URL =
+            MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
 
     @InjectWireMock
     private static WireMockServer wiremock;

@@ -44,8 +44,8 @@ public class TestDataBuilder {
 
     public ApiCreateIojAppealResponse buildValidPopulatedCreateIojAppealResponse() {
         return new ApiCreateIojAppealResponse()
-            .withAppealId(TestConstants.APPEAL_ID)
-            .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
+                .withAppealId(TestConstants.APPEAL_ID)
+                .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
     }
 
     public IojAppealEntity buildIojAppealEntity(boolean setRandomId) {
