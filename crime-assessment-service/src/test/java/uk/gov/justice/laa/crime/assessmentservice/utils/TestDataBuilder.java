@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.common.ApiUserSession;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
@@ -41,9 +42,15 @@ public class TestDataBuilder {
         return request;
     }
 
+    public ApiCreateIojAppealResponse buildValidPopulatedCreateIojAppealResponse() {
+        return new ApiCreateIojAppealResponse()
+            .withAppealId(TestConstants.APPEAL_ID)
+            .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
+    }
+
     public IojAppealEntity buildIojAppealEntity(boolean setRandomId) {
         return IojAppealEntity.builder()
-                .legacyAppealId(1234)
+                .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
                 .legacyApplicationId(223)
                 .receivedDate(LocalDate.of(2025, 2, 1))
                 .appealReason(NewWorkReason.NEW.getCode())
@@ -54,7 +61,7 @@ public class TestDataBuilder {
                 .decisionDate(LocalDate.of(2025, 2, 8))
                 .caseManagementUnitId(44)
                 .createdBy("tester")
-                .appealId((setRandomId ? UUID.randomUUID() : null))
+                .appealId((setRandomId ? UUID.fromString(TestConstants.APPEAL_ID) : null))
                 .build();
     }
 

@@ -20,6 +20,7 @@ import uk.gov.justice.laa.crime.assessmentservice.CrimeAssessmentTestConfigurati
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
+import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
@@ -63,15 +64,12 @@ import com.jayway.jsonpath.JsonPath;
 class IojAppealIntegrationTest {
 
     private MockMvc mvc;
-
-    private static final UUID APPEAL_ID = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
-    private static final Integer LEGACY_APPEAL_ID = 1001;
     private static final String BEARER_TOKEN = "Bearer token";
     private static final String ENDPOINT_URL = "/api/internal/v1/ioj-appeals";
-    private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + APPEAL_ID;
+    private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + TestConstants.APPEAL_ID;
     private static final String ENDPOINT_URL_FIND_LEGACY = ENDPOINT_URL + "/lookup-by-legacy-id";
     private static final String MAAT_API_APPEAL_URL = "/api/internal/v2/assessment/ioj-appeals";
-    private static final String MAAT_API_APPEAL_ROLLBACK_URL = MAAT_API_APPEAL_URL + "/rollback/" + LEGACY_APPEAL_ID;
+    private static final String MAAT_API_APPEAL_ROLLBACK_URL = MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
 
     @InjectWireMock
     private static WireMockServer wiremock;
@@ -156,7 +154,7 @@ class IojAppealIntegrationTest {
     @Test
     void givenAppealExistsInLegacy_whenFindLegacyIojAppealIsInvoked_thenReturnsAppeal() throws Exception {
         ApiGetIojAppealResponse response = new ApiGetIojAppealResponse()
-                .withAppealId(APPEAL_ID.toString())
+                .withAppealId(TestConstants.APPEAL_ID)
                 .withLegacyAppealId(223)
                 .withReceivedDate(LocalDate.of(2025, 2, 1))
                 .withAppealReason(NewWorkReason.NEW)
@@ -192,7 +190,7 @@ class IojAppealIntegrationTest {
     void givenValidCreateRequest_whenCreateIsInvoked_thenSuccess() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
-        var response = new ApiCreateIojAppealResponse().withLegacyAppealId(LEGACY_APPEAL_ID);
+        var response = new ApiCreateIojAppealResponse().withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
 
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL))
                 .willReturn(WireMock.ok()
@@ -237,7 +235,7 @@ class IojAppealIntegrationTest {
     void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsWritten() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
-        var response = new ApiCreateIojAppealResponse().withLegacyAppealId(LEGACY_APPEAL_ID);
+        var response = new ApiCreateIojAppealResponse().withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
         doThrow(new RuntimeException("Test Exception")).when(iojAppealService).save(any(IojAppealEntity.class));
 
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL))
