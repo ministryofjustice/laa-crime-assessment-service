@@ -48,7 +48,7 @@ public class TestDataBuilder {
                 .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
     }
 
-    public IojAppealEntity buildIojAppealEntity(boolean setRandomId) {
+    public IojAppealEntity buildIojAppealEntity(boolean setAppealId) {
         return IojAppealEntity.builder()
                 .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
                 .legacyApplicationId(223)
@@ -61,7 +61,7 @@ public class TestDataBuilder {
                 .decisionDate(LocalDate.of(2025, 2, 8))
                 .caseManagementUnitId(44)
                 .createdBy("tester")
-                .appealId((setRandomId ? UUID.fromString(TestConstants.APPEAL_ID) : null))
+                .appealId((setAppealId ? UUID.fromString(TestConstants.APPEAL_ID) : null))
                 .build();
     }
 
