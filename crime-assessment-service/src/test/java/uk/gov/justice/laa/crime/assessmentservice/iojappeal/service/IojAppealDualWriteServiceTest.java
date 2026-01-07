@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentServiceException;
+import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
@@ -60,7 +60,7 @@ public class IojAppealDualWriteServiceTest {
                 .thenThrow(new IllegalArgumentException("Test exception."));
 
         assertThatThrownBy(() -> iojAppealDualWriteService.createIojAppeal(request))
-                .isInstanceOf(AssessmentServiceException.class)
+                .isInstanceOf(AssessmentRollbackException.class)
                 .hasMessage(String.format(
                         "Error linking appealId %s to legacyAppealId %s, creation has been rolled back: %s",
                         TestConstants.APPEAL_ID, TestConstants.LEGACY_APPEAL_ID, "Test exception."));

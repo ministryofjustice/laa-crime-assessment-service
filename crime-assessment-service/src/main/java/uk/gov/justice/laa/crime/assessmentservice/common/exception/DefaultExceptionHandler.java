@@ -47,8 +47,8 @@ public class DefaultExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(AssessmentServiceException.class)
-    public ResponseEntity<ErrorDTO> handleAssessmentServiceException(AssessmentServiceException exception) {
+    @ExceptionHandler(AssessmentRollbackException.class)
+    public ResponseEntity<ErrorDTO> handleAssessmentRollbackException(AssessmentRollbackException exception) {
         return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
     }
 
