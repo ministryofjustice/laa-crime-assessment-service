@@ -30,7 +30,7 @@ service:
   targetPort: 8091
 
 maatApi:
-  baseUrl: http://laa-maat-data-api.laa-maat-data-api-uat.svc.cluster.local:8090
+  baseUrl: http://laa-maat-data-api.laa-maat-data-api-uat.svc.cluster.local
   oauthUrl: https://maat-api-uat.auth.eu-west-2.amazoncognito.com/oauth2/token
 
 # TODO ingress config
