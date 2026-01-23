@@ -3,12 +3,18 @@ package uk.gov.justice.laa.crime.assessmentservice.common.exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.dto.ErrorDTO;
+import uk.gov.justice.laa.crime.error.ErrorExtension;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 import uk.gov.justice.laa.crime.exception.ValidationException;
+import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
+import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,9 +28,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 public class DefaultExceptionHandler {
     private final ObjectMapper mapper;
+    private final TraceIdHandler traceIdHandler;
 
     @ExceptionHandler(WebClientResponseException.class)
-    public ResponseEntity<ErrorDTO> onRuntimeException(WebClientResponseException exception) {
+    public ResponseEntity<ProblemDetail> onRuntimeException(WebClientResponseException exception) {
         String errorMessage;
         try {
             ErrorDTO errorDTO = mapper.readValue(exception.getResponseBodyAsString(), ErrorDTO.class);
@@ -33,22 +40,51 @@ public class DefaultExceptionHandler {
             log.warn("Unable to read the ErrorDTO from WebClientResponseException", ex);
             errorMessage = exception.getMessage();
         }
-        return buildErrorResponse(exception.getStatusCode(), errorMessage);
+        return buildSimpleErrorResponse(
+                exception.getStatusCode(), exception.getStatusCode().toString(), errorMessage);
     }
 
     @ExceptionHandler(WebClientRequestException.class)
-    public ResponseEntity<ErrorDTO> onRuntimeException(WebClientRequestException exception) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    public ResponseEntity<ProblemDetail> onRuntimeException(WebClientRequestException exception) {
+        return buildSimpleErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", exception.getMessage());
     }
 
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorDTO> handleValidationException(ValidationException exception) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    public ResponseEntity<ProblemDetail> handleValidationException(ValidationException exception) {
+        return buildSimpleErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failure", exception.getMessage());
     }
 
-    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
-        log.error("Exception Occurred. Status - {}, Detail - {}, TraceId - {}", status, message);
-        return new ResponseEntity<>(
-                ErrorDTO.builder().code(status.toString()).message(message).build(), status);
+    @ExceptionHandler(CrimeValidationException.class)
+    public ResponseEntity<ProblemDetail> handleValidationException(CrimeValidationException exception) {
+        ErrorExtension extension = buildErrorExtension(
+                "VALIDATION_FAILURE", traceIdHandler.getTraceId(), exception.getExceptionMessages());
+        return buildSimpleErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failure", extension);
+    }
+
+    private ResponseEntity<ProblemDetail> buildSimpleErrorResponse(
+            HttpStatusCode status, String message, ErrorExtension extension) {
+        logError(status.toString(), message);
+        return new ResponseEntity<>(ProblemDetailUtil.buildProblemDetail(status, message, extension), status);
+    }
+
+    private ResponseEntity<ProblemDetail> buildSimpleErrorResponse(
+            HttpStatusCode status, String errorCode, String message) {
+        logError(status.toString(), message);
+        // create extension with empty list. Detail will suffice.
+        ErrorExtension extension = buildErrorExtension(errorCode, traceIdHandler.getTraceId(), List.of());
+        return buildSimpleErrorResponse(status, message, extension);
+    }
+
+    private ErrorExtension buildErrorExtension(String code, String traceId, List<ErrorMessage> errorMessages) {
+        return ProblemDetailUtil.buildErrorExtension(code, traceId, errorMessages);
+    }
+
+    private void logError(String status, String message) {
+        log.error(
+                "Exception Occurred. Status - {}, Detail - {}, TraceId - {}",
+                status,
+                message,
+                traceIdHandler.getTraceId());
     }
 }
