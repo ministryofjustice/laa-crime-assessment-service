@@ -34,6 +34,12 @@ spring:
         jwt:
           issuer-uri: ${JWT_ISSUER_URI}
 
+logging:
+  level:
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.http.converter.json: DEBUG
+
 server:
   port: 8091
 
