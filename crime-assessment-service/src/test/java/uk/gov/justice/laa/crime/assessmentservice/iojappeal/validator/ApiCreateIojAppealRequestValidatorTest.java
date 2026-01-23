@@ -15,6 +15,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -32,10 +33,11 @@ class ApiCreateIojAppealRequestValidatorTest {
 
     @Test
     void whenRequestEmpty_thenTwoErrors() {
-        List<String> returnedErrorList =
+        List<ErrorMessage> returnedErrorList =
                 ApiCreateIojAppealRequestValidator.validateRequest(new ApiCreateIojAppealRequest());
         assertThat(returnedErrorList).hasSize(2);
         assertThat(returnedErrorList.stream()
+                        .map(ErrorMessage::message)
                         .filter(x -> x.contains(" is missing."))
                         .count())
                 .isEqualTo(2);
@@ -48,15 +50,16 @@ class ApiCreateIojAppealRequestValidatorTest {
                 .withIojAppealMetadata(new IojAppealMetadata());
 
         int expectedErrorCount = 10; // 6 field validations on appeal, 4 on metadata.
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
 
         assertThat(returnedErrorList).hasSize(expectedErrorCount);
         assertThat(returnedErrorList.stream()
+                        .map(ErrorMessage::message)
                         .filter(x -> x.contains(" is missing."))
                         .count())
                 .isEqualTo(expectedErrorCount);
         assertThat(returnedErrorList.stream()
-                        .filter(x -> x.equals(getExpectedMissingError(LEGACY_APPLICATION_ID.getName())))
+                        .filter(x -> x.equals(getExpectedMissingErrorMessage(LEGACY_APPLICATION_ID.getName())))
                         .count())
                 .isEqualTo(1);
     }
@@ -80,12 +83,12 @@ class ApiCreateIojAppealRequestValidatorTest {
         request.getIojAppeal().setAppealAssessor(assessor);
         request.getIojAppeal().setAppealReason(reason);
 
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (isValidCombination) {
             assertThat(returnedErrorList).isEmpty();
         } else {
             assertThat(returnedErrorList).hasSize(1);
-            assertThat(returnedErrorList.getFirst()).isEqualTo(ERROR_INCORRECT_COMBINATION);
+            assertThat(returnedErrorList.getFirst().message()).isEqualTo(ERROR_INCORRECT_COMBINATION);
         }
     }
 
@@ -99,9 +102,9 @@ class ApiCreateIojAppealRequestValidatorTest {
         ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealReason(reason);
 
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo(ERROR_APPEAL_REASON_IS_INVALID);
+        assertThat(returnedErrorList.getFirst().message()).isEqualTo(ERROR_APPEAL_REASON_IS_INVALID);
     }
 
     @Test
@@ -109,10 +112,10 @@ class ApiCreateIojAppealRequestValidatorTest {
         ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealAssessor(null);
 
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
 
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingError(APPEAL_ASSESSOR.getName()));
+        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingErrorMessage(APPEAL_ASSESSOR.getName()));
     }
 
     @ParameterizedTest
@@ -122,17 +125,18 @@ class ApiCreateIojAppealRequestValidatorTest {
         request.getIojAppealMetadata().getUserSession().setUserName(emptyOrNull);
         request.getIojAppealMetadata().getUserSession().setSessionId(emptyOrNull);
 
-        List<String> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
 
         assertThat(returnedErrorList)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(
-                        getExpectedMissingError(SESSION_ID.getName()), getExpectedMissingError(USERNAME.getName()));
+                        getExpectedMissingErrorMessage(SESSION_ID.getName()),
+                        getExpectedMissingErrorMessage(USERNAME.getName()));
     }
 
     // helpers
 
-    private String getExpectedMissingError(String fieldName) {
-        return String.format(ERROR_FIELD_IS_MISSING, fieldName);
+    private ErrorMessage getExpectedMissingErrorMessage(String fieldName) {
+        return new ErrorMessage(fieldName, String.format(ERROR_FIELD_IS_MISSING, fieldName));
     }
 }

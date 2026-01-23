@@ -13,6 +13,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
+import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +48,9 @@ class IojAppealControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private TraceIdHandler traceIdHandler;
 
     private static final String IOJ_APPEALS_ENDPOINT = "/api/internal/v1/ioj-appeals";
     private static final String FIND_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/{id}";
@@ -106,16 +110,19 @@ class IojAppealControllerTest {
         var request = new ApiCreateIojAppealRequest();
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
-
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").isEmpty())
-                .andExpect(jsonPath("$.messageList").isArray())
-                .andExpect(jsonPath("$.messageList.size()").value("10"))
-                .andExpect(jsonPath("$.messageList[0]", Matchers.containsString(" is missing.")));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("Validation Failure"))
+                .andExpect(jsonPath("$.instance").value("/api/internal/v1/ioj-appeals"))
+                .andExpect(jsonPath("$.errors").exists())
+                .andExpect(jsonPath("$.errors.code").value("VALIDATION_FAILURE"))
+                .andExpect(jsonPath("$.errors.errors").isArray())
+                .andExpect(jsonPath("$.errors.errors.size()").value(10))
+                .andExpect(jsonPath("$.errors.errors[0].message", Matchers.containsString(" is missing.")));
     }
 
     @Test
