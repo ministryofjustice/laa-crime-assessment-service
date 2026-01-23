@@ -56,6 +56,7 @@ public class IojAppealController implements IojAppealApi {
     @PostMapping
     public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
         List<String> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
+        log.error("Validation errors: {}", validationErrors);
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }
