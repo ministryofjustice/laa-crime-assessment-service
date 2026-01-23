@@ -26,6 +26,7 @@ public class CrimeValidationExceptionHandler {
 
     @ExceptionHandler(CrimeValidationException.class)
     public ResponseEntity<ValidationErrorDTO> handleCrimeValidationException(CrimeValidationException ex) {
+        log.error("CrimeValidationException: ", ex);
         return buildErrorResponse(new ArrayList<>(ex.getExceptionMessage()));
     }
 }
