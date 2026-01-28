@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class DefaultExceptionHandler {
+
     private final ObjectMapper mapper;
 
     @ExceptionHandler(WebClientResponseException.class)
@@ -44,6 +45,11 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorDTO> handleValidationException(ValidationException exception) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(AssessmentRollbackException.class)
+    public ResponseEntity<ErrorDTO> handleAssessmentRollbackException(AssessmentRollbackException exception) {
+        return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
     }
 
     private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
