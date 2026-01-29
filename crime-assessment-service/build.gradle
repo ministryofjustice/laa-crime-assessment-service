@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.7'
-    id 'com.adarshr.test-logger' version '4.0.0'
-    id "com.github.ben-manes.versions" version "0.52.0"
-    id "com.diffplug.spotless" version "8.0.0"
     id 'jacoco'
+    id "com.diffplug.spotless" version "8.0.0"
+    id 'com.adarshr.test-logger' version '4.0.0'
+    id 'org.springframework.boot' version '3.5.7'
+    id "com.github.ben-manes.versions" version "0.52.0"
 }
 
 group = "uk.gov.justice.laa.crime"
@@ -16,11 +16,12 @@ java {
 }
 
 def versions = [
-    sentry                      : "8.23.0",
-    resilience4j                : "2.3.0",
-    mapstruct                   : "1.6.3",
-    crimeCommonsClasses         : "4.23.0",
-    crimeCommonsModSchemas      : "1.43.0"
+        modulith              : "1.4.7",
+        sentry                : "8.23.0",
+        resilience4j          : "2.3.0",
+        mapstruct             : "1.6.3",
+        crimeCommonsClasses   : "4.23.0",
+        crimeCommonsModSchemas: "1.43.0"
 ]
 
 repositories {
@@ -34,8 +35,8 @@ ext {
 dependencies {
     // Alignment for all Spring Boot and Spring Modulith dependencies
     implementation platform("org.springframework.boot:spring-boot-dependencies:3.5.7")
-    implementation platform("org.springframework.modulith:spring-modulith-bom:1.4.4")
-    
+    implementation platform("org.springframework.modulith:spring-modulith-bom:$versions.modulith")
+
     // Spring Modulith
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-docs'
@@ -84,7 +85,7 @@ dependencies {
 
     // Documentation
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6"
-    
+
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
