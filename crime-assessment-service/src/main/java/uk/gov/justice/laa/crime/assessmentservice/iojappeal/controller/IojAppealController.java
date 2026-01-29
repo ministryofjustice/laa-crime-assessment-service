@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -32,25 +30,22 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "IOJ Appeals", description = "Rest API for IOJ Appeals.")
 public class IojAppealController implements IojAppealApi {
 
-    private final IojAppealService iojAppealService;
     private final IojAppealDualWriteService iojAppealDualWriteService;
-    private final LegacyIojAppealService legacyIojAppealService;
 
     @GetMapping(path = "/{appealId}")
-    public ResponseEntity<ApiGetIojAppealResponse> getAppeal(@PathVariable UUID appealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealService.find(appealId);
+    public ResponseEntity<ApiGetIojAppealResponse> find(@PathVariable UUID appealId) {
+        Optional<ApiGetIojAppealResponse> response = iojAppealDualWriteService.find(appealId);
 
         return response.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
-    public ResponseEntity<ApiGetIojAppealResponse> getAppealByLegacyAppealId(@PathVariable int legacyAppealId) {
-        ApiGetIojAppealResponse response = legacyIojAppealService.find(legacyAppealId);
+    public ResponseEntity<ApiGetIojAppealResponse> findByLegacyId(@PathVariable int legacyAppealId) {
+        Optional<ApiGetIojAppealResponse> response = iojAppealDualWriteService.find(legacyAppealId);
 
-        return response != null
-                ? ResponseEntity.ok(response)
-                : ResponseEntity.notFound().build();
+        return response.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping

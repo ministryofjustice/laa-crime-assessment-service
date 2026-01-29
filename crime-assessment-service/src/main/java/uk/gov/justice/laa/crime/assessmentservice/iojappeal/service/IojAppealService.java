@@ -19,11 +19,15 @@ import org.springframework.stereotype.Service;
 public class IojAppealService {
 
     private final IojAppealMapper iojAppealMapper;
-
     private final IojAppealRepository iojAppealRepository;
 
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
         return Optional.ofNullable(iojAppealRepository.findIojAppealByAppealId(appealId))
+                .map(iojAppealMapper::mapEntityToDTO);
+    }
+
+    public Optional<ApiGetIojAppealResponse> find(int legacyAppealId) {
+        return Optional.ofNullable(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId))
                 .map(iojAppealMapper::mapEntityToDTO);
     }
 
