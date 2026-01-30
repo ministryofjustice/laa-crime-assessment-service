@@ -68,8 +68,10 @@ dependencies {
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("io.sentry:sentry-logback")
 
-    // Prometheus
+    // Tracing + Prometheus
+    implementation "io.micrometer:micrometer-tracing"
     implementation "io.micrometer:micrometer-registry-prometheus"
+    implementation "io.micrometer:micrometer-tracing-bridge-brave"
 
     // Crime Commons
     implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"

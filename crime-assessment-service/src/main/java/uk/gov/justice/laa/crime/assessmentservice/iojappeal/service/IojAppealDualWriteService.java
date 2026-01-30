@@ -2,9 +2,8 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAudit;
+import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -13,6 +12,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
