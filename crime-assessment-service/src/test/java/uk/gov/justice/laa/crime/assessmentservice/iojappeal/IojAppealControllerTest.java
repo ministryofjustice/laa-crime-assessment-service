@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
@@ -51,6 +53,7 @@ class IojAppealControllerTest {
     private static final String IOJ_APPEALS_ENDPOINT = "/api/internal/v1/ioj-appeals";
     private static final String FIND_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/{id}";
     private static final String FIND_BY_LEGACY_ID_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/lookup-by-legacy-id/{id}";
+    private static final String ROLLBACK_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/rollback/{id}";
     private static final int TEST_ID = 123;
 
     @Test
@@ -85,6 +88,72 @@ class IojAppealControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenInvalidRequest_whenRollbackAppealIsInvoked_thenReturnsBadRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, "not-a-valid-id"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void givenUnknownIojAppeal_whenRollbackAppealIsInvoked_thenReturnsNotFound() throws Exception {
+        UUID appealId = UUID.randomUUID();
+
+        when(iojAppealService.find(appealId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void givenUnsuccessfulRollback_whenRollbackAppealIsInvoked_thenReturnsErrorResponse() throws Exception {
+        UUID appealId = UUID.randomUUID();
+
+        ApiGetIojAppealResponse iojAppealResponse =
+                new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
+
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(appealId)
+                .legacyAppealId(TEST_ID)
+                .build();
+
+        ApiRollbackIojAppealResponse expectedResponse = ApiRollbackIojAppealResponse.builder()
+                .appealId(appealId.toString())
+                .legacyAppealId(TEST_ID)
+                .rollbackSuccessful(false)
+                .build();
+
+        when(iojAppealService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
+        when(iojAppealDualWriteService.rollbackIojAppeal(request)).thenReturn(false);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.appealId").value(appealId.toString()))
+                .andExpect(jsonPath("$.legacyAppealId").value(TEST_ID))
+                .andExpect(jsonPath("$.rollbackSuccessful").value(false));
+    }
+
+    @Test
+    void givenValidRequest_whenRollbackAppealIsInvoked_thenReturnsOkResponse() throws Exception {
+        UUID appealId = UUID.randomUUID();
+
+        ApiGetIojAppealResponse iojAppealResponse =
+                new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
+
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(appealId)
+                .legacyAppealId(TEST_ID)
+                .build();
+
+        when(iojAppealService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
+        when(iojAppealDualWriteService.rollbackIojAppeal(request)).thenReturn(true);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.appealId").value(appealId.toString()))
+                .andExpect(jsonPath("$.legacyAppealId").value(TEST_ID))
+                .andExpect(jsonPath("$.rollbackSuccessful").value(true));
     }
 
     @Test

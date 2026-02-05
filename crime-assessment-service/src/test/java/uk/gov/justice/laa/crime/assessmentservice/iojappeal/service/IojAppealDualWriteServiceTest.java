@@ -67,4 +67,9 @@ public class IojAppealDualWriteServiceTest {
         verify(legacyIojAppealService).rollback(TestConstants.LEGACY_APPEAL_ID);
         verify(iojAppealService).delete(entity);
     }
+
+    @Test
+    void givenValidRequest_whenRollbackIojAppealIsInvoked_thenIojAppealIsRolledBack() {
+
+    }
 }
