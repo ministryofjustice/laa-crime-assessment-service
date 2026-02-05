@@ -18,7 +18,7 @@ class IoJAppealMapperTest {
         assertThat(entity)
                 .isNotNull()
                 .hasNoNullFieldsOrPropertiesExcept(
-                        "appealId", "legacyAppealId", "modifiedBy", "modifiedDate", "isCurrent");
+                        "appealId", "legacyAppealId", "modifiedBy", "modifiedDate");
         assertThat(entity.getCreatedBy())
                 .isEqualTo(request.getIojAppealMetadata().getUserSession().getUserName());
     }

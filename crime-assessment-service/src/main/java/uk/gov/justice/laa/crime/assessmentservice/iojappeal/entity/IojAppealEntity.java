@@ -77,7 +77,4 @@ public class IojAppealEntity {
 
     @Column(name = "modified_at")
     private LocalDateTime modifiedDate;
-
-    @Column(name = "is_current")
-    private boolean isCurrent;
 }
