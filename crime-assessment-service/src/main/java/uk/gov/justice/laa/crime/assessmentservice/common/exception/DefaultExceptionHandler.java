@@ -87,4 +87,15 @@ public class DefaultExceptionHandler {
                 message,
                 traceIdHandler.getTraceId());
     }
+
+    @ExceptionHandler(AssessmentRollbackException.class)
+    public ResponseEntity<ErrorDTO> handleAssessmentRollbackException(AssessmentRollbackException exception) {
+        return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
+    }
+
+    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
+        log.error("Exception Occurred. Status - {}, Detail - {}, TraceId - {}", status, message);
+        return new ResponseEntity<>(
+                ErrorDTO.builder().code(status.toString()).message(message).build(), status);
+    }
 }

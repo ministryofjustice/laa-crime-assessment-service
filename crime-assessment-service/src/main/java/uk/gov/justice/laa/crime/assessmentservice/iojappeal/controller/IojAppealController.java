@@ -60,7 +60,7 @@ public class IojAppealController implements IojAppealApi {
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }
-        // Call dual-write method.
+
         IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
 
         ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
