@@ -40,6 +40,15 @@ public class IojAppealDualWriteService {
     }
 
     public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
-        return false;
+        try {
+            // TODO: Call a presumably new service here for creating a new record in the events table
+
+            legacyIojAppealService.rollback(request.getLegacyAppealId());
+        } catch (Exception ex) {
+            // TODO: Log the error
+            return false;
+        }
+
+        return true;
     }
 }

@@ -3,15 +3,19 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
+
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +74,29 @@ public class IojAppealDualWriteServiceTest {
 
     @Test
     void givenValidRequest_whenRollbackIojAppealIsInvoked_thenIojAppealIsRolledBack() {
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(UUID.randomUUID())
+                .legacyAppealId(123)
+                .build();
 
+        boolean rollbackSuccessful = iojAppealDualWriteService.rollbackIojAppeal(request);
+
+        assertThat(rollbackSuccessful).isTrue();
+    }
+
+    @Test
+    void givenExceptionDuringRollback_whenRollbackIojAppealIsInvoked_thenIojAppealIsNotRolledBack() {
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(UUID.randomUUID())
+                .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
+                .build();
+
+        doThrow(new RuntimeException("Error during rollback"))
+                .when(legacyIojAppealService)
+                .rollback(123);
+
+        boolean rollbackSuccessful = iojAppealDualWriteService.rollbackIojAppeal(request);
+
+        assertThat(rollbackSuccessful).isFalse();
     }
 }
