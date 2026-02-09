@@ -10,6 +10,7 @@ import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -62,6 +63,13 @@ public class DefaultExceptionHandler {
         return buildSimpleErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failure", extension);
     }
 
+    @ExceptionHandler(AssessmentRollbackException.class)
+    public ResponseEntity<ProblemDetail> handleAssessmentRollbackException(AssessmentRollbackException exception) {
+        ErrorExtension extension = buildErrorExtension(
+                "VALIDATION_FAILURE", traceIdHandler.getTraceId(), Collections.emptyList());
+        return buildSimpleErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage(), extension);
+    }
+
     private ResponseEntity<ProblemDetail> buildSimpleErrorResponse(
             HttpStatusCode status, String message, ErrorExtension extension) {
         logError(status.toString(), message);
@@ -88,14 +96,5 @@ public class DefaultExceptionHandler {
                 traceIdHandler.getTraceId());
     }
 
-    @ExceptionHandler(AssessmentRollbackException.class)
-    public ResponseEntity<ErrorDTO> handleAssessmentRollbackException(AssessmentRollbackException exception) {
-        return buildErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage());
-    }
 
-    private static ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatusCode status, String message) {
-        log.error("Exception Occurred. Status - {}, Detail - {}, TraceId - {}", status, message);
-        return new ResponseEntity<>(
-                ErrorDTO.builder().code(status.toString()).message(message).build(), status);
-    }
 }
