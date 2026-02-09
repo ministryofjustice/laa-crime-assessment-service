@@ -66,7 +66,7 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(AssessmentRollbackException.class)
     public ResponseEntity<ProblemDetail> handleAssessmentRollbackException(AssessmentRollbackException exception) {
         ErrorExtension extension =
-                buildErrorExtension("VALIDATION_FAILURE", traceIdHandler.getTraceId(), Collections.emptyList());
+                buildErrorExtension("ROLLBACK", traceIdHandler.getTraceId(), Collections.emptyList());
         return buildSimpleErrorResponse(HttpStatusCode.valueOf(555), exception.getMessage(), extension);
     }
 
