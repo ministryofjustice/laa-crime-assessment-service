@@ -12,6 +12,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -243,7 +244,7 @@ class IojAppealIntegrationTest {
     }
 
     @Test
-    void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsWritten() throws Exception {
+    void givenUpdateFailure_whenCreateIsInvoked_thenRollbackIsApplied() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         var response = new ApiCreateIojAppealResponse().withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
@@ -261,7 +262,7 @@ class IojAppealIntegrationTest {
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(555))
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
                 .andReturn();
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
