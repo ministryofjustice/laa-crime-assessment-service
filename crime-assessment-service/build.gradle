@@ -19,7 +19,7 @@ def versions = [
     sentry                      : "8.31.0",
     resilience4j                : "2.3.0",
     mapstruct                   : "1.6.3",
-    crimeCommonsClasses         : "4.27.0",
+    crimeCommonsClasses         : "4.28.1",
     crimeCommonsModSchemas      : "1.43.0",
     lombok                      : "1.18.42"
 ]
