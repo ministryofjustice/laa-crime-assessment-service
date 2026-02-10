@@ -17,8 +17,7 @@ class IoJAppealMapperTest {
         // check only nulls are known, non-mapped fields.
         assertThat(entity)
                 .isNotNull()
-                .hasNoNullFieldsOrPropertiesExcept(
-                        "appealId", "legacyAppealId", "modifiedBy", "modifiedDate");
+                .hasNoNullFieldsOrPropertiesExcept("appealId", "legacyAppealId");
         assertThat(entity.getCreatedBy())
                 .isEqualTo(request.getIojAppealMetadata().getUserSession().getUserName());
     }
