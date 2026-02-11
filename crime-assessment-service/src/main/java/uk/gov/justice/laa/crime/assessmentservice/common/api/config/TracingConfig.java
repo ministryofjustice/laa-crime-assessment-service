@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.config;
 
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;

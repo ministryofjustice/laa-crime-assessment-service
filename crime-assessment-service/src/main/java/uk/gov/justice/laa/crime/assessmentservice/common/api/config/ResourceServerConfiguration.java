@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.config;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,7 +50,7 @@ public class ResourceServerConfiguration {
                         .hasAuthority(SCOPE_CAS_STANDARD)
                         .anyRequest()
                         .authenticated())
-                .oauth2ResourceServer((oauth2ResourceServer) -> oauth2ResourceServer
+                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
                         .accessDeniedHandler(bearerTokenAccessDeniedHandler())
                         .authenticationEntryPoint(bearerTokenAuthenticationEntryPoint())
                         .jwt(Customizer.withDefaults()));

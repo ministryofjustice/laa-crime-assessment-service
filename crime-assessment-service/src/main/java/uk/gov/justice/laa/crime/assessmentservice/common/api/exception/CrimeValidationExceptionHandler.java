@@ -1,7 +1,7 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.exception;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.dto.validation.ValidationErrorDTO;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.validation.ValidationErrorDTO;
 
 import java.util.ArrayList;
 import java.util.List;

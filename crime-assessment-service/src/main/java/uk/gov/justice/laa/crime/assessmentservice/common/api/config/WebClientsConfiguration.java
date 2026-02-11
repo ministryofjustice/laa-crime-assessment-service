@@ -1,11 +1,11 @@
-package uk.gov.justice.laa.crime.assessmentservice;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.config;
 
 import io.github.resilience4j.retry.RetryRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.client.MaatCourtDataApiClient;
-import uk.gov.justice.laa.crime.assessmentservice.common.filter.Resilience4jRetryFilter;
-import uk.gov.justice.laa.crime.assessmentservice.common.filter.WebClientFilters;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.client.MaatCourtDataApiClient;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.filter.Resilience4jRetryFilter;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.filter.WebClientFilters;
 
 import java.util.List;
 

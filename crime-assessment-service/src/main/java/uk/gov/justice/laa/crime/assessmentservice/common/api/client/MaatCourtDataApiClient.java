@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.client;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.client;
 
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;

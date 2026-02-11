@@ -122,8 +122,8 @@ jacocoTestCoverageVerification {
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.*',
                         'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.exception.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.api.filter.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.api.exception.*',
                         'uk.gov.justice.laa.crime.assessmentservice.config.*'
             ]
             limit {

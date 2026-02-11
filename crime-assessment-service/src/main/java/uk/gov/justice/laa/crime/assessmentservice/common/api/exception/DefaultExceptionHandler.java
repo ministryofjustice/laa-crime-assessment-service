@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.exception;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

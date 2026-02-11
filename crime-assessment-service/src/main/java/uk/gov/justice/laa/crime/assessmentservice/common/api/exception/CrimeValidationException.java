@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.exception;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.exception;
 
 import lombok.Getter;
 import lombok.Setter;

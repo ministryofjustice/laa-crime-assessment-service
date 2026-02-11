@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.filter;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.filter;
 
 import io.github.resilience4j.reactor.retry.RetryOperator;
 import io.github.resilience4j.retry.Retry;

@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.exception;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.exception;
 
 public class AssessmentRollbackException extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.common.dto.validation;
+package uk.gov.justice.laa.crime.assessmentservice.common.api.validation;
 
 import lombok.Builder;
 import lombok.Value;

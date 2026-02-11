@@ -2,7 +2,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.client.MaatCourtDataApiClient;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.client.MaatCourtDataApiClient;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
