@@ -20,6 +20,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/changeset/10-create-ioj-appeal-enum-casts.sql
   - include:
-      file: db/changelog/changeset/11-alter_ioj_appeal_event-table-postgres.sql
+      file: db/changelog/changeset/11-alter-ioj-appeal-table.sql
   - include:
-      file: db/changelog/changeset/11-alter_ioj_appeal_event-table-h2.sql
+      file: db/changelog/changeset/12-alter_ioj_appeal_event-table-postgres.sql
+  - include:
+      file: db/changelog/changeset/12-alter_ioj_appeal_event-table-h2.sql
