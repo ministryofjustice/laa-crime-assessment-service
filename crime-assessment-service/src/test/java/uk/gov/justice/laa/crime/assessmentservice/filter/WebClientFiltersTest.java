@@ -4,7 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import reactor.core.publisher.Mono;
-import uk.gov.justice.laa.crime.assessmentservice.common.filter.WebClientFilters;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.filter.WebClientFilters;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;

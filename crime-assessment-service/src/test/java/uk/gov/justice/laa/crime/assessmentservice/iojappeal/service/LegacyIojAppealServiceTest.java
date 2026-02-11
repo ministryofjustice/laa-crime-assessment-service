@@ -1,13 +1,17 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.client.MaatCourtDataApiClient;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.IojAppealMapper;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.client.MaatCourtDataApiClient;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,13 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class LegacyIojAppealServiceTest {
-
-    @Mock
-    private IojAppealMapper iojAppealMapper;
-
-    @Mock
-    private IojAppealRepository iojAppealRepository;
+class LegacyIojAppealServiceTest {
 
     @Mock
     private MaatCourtDataApiClient maatCourtDataApiClient;
@@ -31,45 +29,53 @@ public class LegacyIojAppealServiceTest {
     private LegacyIojAppealService legacyIojAppealService;
 
     @Test
-    void givenAppealNotFound_whenLegacyFindIsInvoked_thenReturnsNull() {
+    void givenNoResult_whenFindIsInvoked_thenReturnsEmptyOptional() {
         int legacyAppealId = 1;
 
-        when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(null);
         when(maatCourtDataApiClient.getIojAppeal(legacyAppealId)).thenReturn(null);
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
+        Optional<ApiGetIojAppealResponse> iojAppeal = legacyIojAppealService.find(legacyAppealId);
 
-        assertThat(iojAppeal).isNull();
+        assertThat(iojAppeal).isEmpty();
+        verify(maatCourtDataApiClient).getIojAppeal(1);
+        verifyNoMoreInteractions(maatCourtDataApiClient);
     }
 
     @Test
-    void givenAppealNotFoundInAssessmentServiceButFoundInMAAT_whenLegacyFindIsInvoked_thenReturnsNull() {
+    void givenResult_whenFindIsInvoked_thenAppealIsReturned() {
         int legacyAppealId = 1;
 
         ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId);
+        when(maatCourtDataApiClient.getIojAppeal(anyInt())).thenReturn(iojAppealResponse);
 
-        when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(null);
-        when(maatCourtDataApiClient.getIojAppeal(legacyAppealId)).thenReturn(iojAppealResponse);
+        Optional<ApiGetIojAppealResponse> iojAppeal = legacyIojAppealService.find(legacyAppealId);
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
-
-        assertThat(iojAppeal).isEqualTo(iojAppealResponse);
+        assertThat(iojAppeal).containsSame(iojAppealResponse);
+        verify(maatCourtDataApiClient).getIojAppeal(legacyAppealId);
+        verifyNoMoreInteractions(maatCourtDataApiClient);
     }
 
     @Test
-    void givenAppealIsFoundInAssessmentServiceDb_whenLegacyFind() {
-        int legacyAppealId = 1;
+    void whenCreateIsInvoked_thenDelegatesToClientAndReturnsResponse() {
+        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest();
+        ApiCreateIojAppealResponse expected = new ApiCreateIojAppealResponse();
 
-        IojAppealEntity iojAppealEntity =
-                IojAppealEntity.builder().legacyAppealId(legacyAppealId).build();
+        when(maatCourtDataApiClient.createIojAppeal(request)).thenReturn(expected);
 
-        ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId);
+        ApiCreateIojAppealResponse actual = legacyIojAppealService.create(request);
 
-        when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(iojAppealEntity);
-        when(iojAppealMapper.mapEntityToDTO(iojAppealEntity)).thenReturn(iojAppealResponse);
+        assertThat(actual).isSameAs(expected);
+        verify(maatCourtDataApiClient).createIojAppeal(request);
+        verifyNoMoreInteractions(maatCourtDataApiClient);
+    }
 
-        ApiGetIojAppealResponse iojAppeal = legacyIojAppealService.find(legacyAppealId);
+    @Test
+    void whenRollbackIsInvoked_thenDelegatesToClient() {
+        int legacyAppealId = 77;
 
-        assertThat(iojAppeal).isEqualTo(iojAppealResponse);
+        legacyIojAppealService.rollback(legacyAppealId);
+
+        verify(maatCourtDataApiClient).rollbackIojAppeal(legacyAppealId);
+        verifyNoMoreInteractions(maatCourtDataApiClient);
     }
 }

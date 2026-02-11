@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.7'
-    id 'com.adarshr.test-logger' version '4.0.0'
-    id "com.github.ben-manes.versions" version "0.52.0"
-    id "com.diffplug.spotless" version "8.0.0"
     id 'jacoco'
+    id "com.diffplug.spotless" version "8.0.0"
+    id 'com.adarshr.test-logger' version '4.0.0'
+    id 'org.springframework.boot' version '3.5.7'
+    id "com.github.ben-manes.versions" version "0.52.0"
 }
 
 group = "uk.gov.justice.laa.crime"
@@ -16,12 +16,13 @@ java {
 }
 
 def versions = [
-    sentry                      : "8.31.0",
-    resilience4j                : "2.3.0",
-    mapstruct                   : "1.6.3",
-    crimeCommonsClasses         : "4.28.1",
-    crimeCommonsModSchemas      : "1.43.0",
-    lombok                      : "1.18.42"
+        modulith                    : "1.4.7",
+        sentry                      : "8.31.0",
+        resilience4j                : "2.3.0",
+        mapstruct                   : "1.6.3",
+        crimeCommonsClasses         : "4.28.1",
+        crimeCommonsModSchemas      : "1.43.0",
+        lombok                      : "1.18.42"
 ]
 
 repositories {
@@ -35,8 +36,8 @@ ext {
 dependencies {
     // Alignment for all Spring Boot and Spring Modulith dependencies
     implementation platform("org.springframework.boot:spring-boot-dependencies:3.5.10")
-    implementation platform("org.springframework.modulith:spring-modulith-bom:1.4.7")
-    
+    implementation platform("org.springframework.modulith:spring-modulith-bom:$versions.modulith")
+
     // Spring Modulith
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-docs'
@@ -68,9 +69,9 @@ dependencies {
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("io.sentry:sentry-logback")
 
-    // Prometheus
+    // Tracing + Prometheus
+    implementation "io.micrometer:micrometer-tracing"
     implementation "io.micrometer:micrometer-registry-prometheus"
-    implementation 'io.micrometer:micrometer-tracing'
 
     // Crime Commons
     implementation "uk.gov.justice.service.laa-crime:crime-commons-classes:$versions.crimeCommonsClasses"
@@ -86,7 +87,7 @@ dependencies {
 
     // Documentation
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
-    
+
     compileOnly "org.projectlombok:lombok:$versions.lombok"
     annotationProcessor "org.projectlombok:lombok:$versions.lombok"
 
@@ -121,8 +122,8 @@ jacocoTestCoverageVerification {
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.*',
                         'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.filter.*',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.exception.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.api.filter.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.common.api.exception.*',
                         'uk.gov.justice.laa.crime.assessmentservice.config.*'
             ]
             limit {
