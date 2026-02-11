@@ -17,8 +17,7 @@ public final class AuditRequests {
                 .triggeredBy(triggeredBy)
                 .traceId(traceId)
                 .auditPayload(payload)
-                .identifiers(List.of(new AuditIdentifier(AuditIdentifierType.APPEAL_ID,
-                        appealId.toString())))
+                .identifiers(List.of(new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString())))
                 .build();
     }
 
@@ -31,13 +30,11 @@ public final class AuditRequests {
                 .traceId(traceId)
                 .auditPayload(payload)
                 .identifiers(List.of(
-                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID,
-                                String.valueOf(legacyAppealId))))
+                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID, String.valueOf(legacyAppealId))))
                 .build();
     }
 
-    public static AuditEventRequest findIojNotFoundByAppealId(String triggeredBy, String traceId,
-            Object payload) {
+    public static AuditEventRequest findIojNotFoundByAppealId(String triggeredBy, String traceId, Object payload) {
         return AuditEventRequest.builder()
                 .domain(AuditDomain.IOJ_APPEAL)
                 .eventType(AuditEventType.FIND)
@@ -48,8 +45,7 @@ public final class AuditRequests {
     }
 
     public static AuditEventRequest createIoj(
-            UUID appealId, int legacyAppealId, String triggeredBy, String traceId,
-            Map<String, Object> payload) {
+            UUID appealId, int legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
         return AuditEventRequest.builder()
                 .domain(AuditDomain.IOJ_APPEAL)
                 .eventType(AuditEventType.CREATE)
@@ -58,8 +54,7 @@ public final class AuditRequests {
                 .auditPayload(payload)
                 .identifiers(List.of(
                         new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString()),
-                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID,
-                                String.valueOf(legacyAppealId))))
+                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID, String.valueOf(legacyAppealId))))
                 .build();
     }
 }
