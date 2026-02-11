@@ -34,7 +34,7 @@ public final class IojAuditPayloadMapper {
         putDate(m, "receivedDate", iojAppeal.getReceivedDate());
         putEnumValue(m, "appealReason", iojAppeal.getAppealReason());
         putEnumValue(m, "appealAssessor", iojAppeal.getAppealAssessor());
-        m.put("appealSuccessful", iojAppeal.getAppealSuccessful());
+        putValue(m, "appealSuccessful", iojAppeal.getAppealSuccessful());
         putEnumValue(m, "decisionReason", iojAppeal.getDecisionReason());
         putDate(m, "decisionDate", iojAppeal.getDecisionDate());
         return m;
@@ -44,9 +44,9 @@ public final class IojAuditPayloadMapper {
         if (metadata == null) return Map.of();
 
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("legacyApplicationId", metadata.getLegacyApplicationId());
+        putValue(m, "legacyApplicationId", metadata.getLegacyApplicationId());
         putDate(m, "applicationReceivedDate", metadata.getApplicationReceivedDate());
-        m.put("caseManagementUnitId", metadata.getCaseManagementUnitId());
+        putValue(m, "caseManagementUnitId", metadata.getCaseManagementUnitId());
         return m;
     }
 
@@ -54,11 +54,11 @@ public final class IojAuditPayloadMapper {
         if (date != null) map.put(key, date.toString());
     }
 
-    /**
-     * Your OpenAPI-generated enums often serialise via @JsonValue.
-     * Safest approach is to store String.valueOf(enum) if you’re not sure.
-     */
     private static void putEnumValue(Map<String, Object> map, String key, Object enumValue) {
         if (enumValue != null) map.put(key, String.valueOf(enumValue));
+    }
+
+    private static void putValue(Map<String, Object> map, String key, Object value) {
+        if (value != null) map.put(key, value);
     }
 }
