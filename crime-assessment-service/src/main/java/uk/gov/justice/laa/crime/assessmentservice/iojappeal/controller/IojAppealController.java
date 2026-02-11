@@ -9,6 +9,7 @@ import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateI
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,8 +50,7 @@ public class IojAppealController implements IojAppealApi {
 
     @PostMapping
     public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
-        List<String> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
-
+        List<ErrorMessage> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }

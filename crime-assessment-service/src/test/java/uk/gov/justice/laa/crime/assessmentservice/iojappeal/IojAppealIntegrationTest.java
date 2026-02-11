@@ -10,8 +10,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,6 +32,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
+import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -80,6 +84,9 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
 
     @MockitoSpyBean
     IojAppealService iojAppealService;
+
+    @MockitoSpyBean
+    private TraceIdHandler traceIdHandler;
 
     @BeforeEach
     void setup() throws JsonProcessingException {
@@ -233,6 +240,9 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
 
     @Test
     void givenMaatFailure_whenCreateIsInvoked_thenNothingWritten() throws Exception {
+        var testTrace = "Test Trace";
+        doReturn(testTrace).when(traceIdHandler).getTraceId();
+
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL)).willReturn(WireMock.serverError()));
@@ -241,7 +251,8 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is5xxServerError())
-                .andExpect(content().contentType(APPLICATION_JSON));
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.errors.traceId").value(testTrace));
         // ensure we've rolled back the DB write
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
     }
@@ -265,7 +276,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(555))
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
                 .andReturn();
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));

@@ -24,6 +24,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +41,11 @@ public class ApiCreateIojAppealRequestValidator {
 
     public static final String APPEAL_REASON_HARDIOJ = "HARDIOJ";
 
-    public List<String> validateRequest(ApiCreateIojAppealRequest request) {
-        var errorList = new ArrayList<String>();
+    public List<ErrorMessage> validateRequest(ApiCreateIojAppealRequest request) {
+        var errorList = new ArrayList<ErrorMessage>();
         if (Objects.isNull(request)) {
-            return List.of(getMissingFieldErrorText(REQUEST));
+            addMissingFieldError(REQUEST, errorList);
+            return errorList;
         }
 
         validateMetaData(request.getIojAppealMetadata(), errorList);
@@ -54,9 +56,9 @@ public class ApiCreateIojAppealRequestValidator {
 
     // MetaData Validation
 
-    void validateMetaData(IojAppealMetadata metadata, List<String> errorList) {
+    void validateMetaData(IojAppealMetadata metadata, List<ErrorMessage> errorList) {
         if (Objects.isNull(metadata)) {
-            errorList.add(getMissingFieldErrorText(METADATA));
+            addMissingFieldError(METADATA, errorList);
             return;
         }
         validateFieldNotEmpty(metadata.getCaseManagementUnitId(), CASE_MANAGEMENT_UNIT, errorList);
@@ -66,9 +68,9 @@ public class ApiCreateIojAppealRequestValidator {
     }
 
     // ensure the username/session id are present in usersession.
-    private void validateUserSession(ApiUserSession userSession, List<String> errorList) {
+    private void validateUserSession(ApiUserSession userSession, List<ErrorMessage> errorList) {
         if (Objects.isNull(userSession)) {
-            errorList.add(getMissingFieldErrorText(USER_SESSION));
+            addMissingFieldError(USER_SESSION, errorList);
         } else {
             validateFieldNotEmpty(userSession.getSessionId(), SESSION_ID, errorList);
             validateFieldNotEmpty(userSession.getUserName(), USERNAME, errorList);
@@ -77,9 +79,9 @@ public class ApiCreateIojAppealRequestValidator {
 
     // Appeal Validation
 
-    void validateIoJAppeal(IojAppeal appeal, List<String> errorList) {
+    void validateIoJAppeal(IojAppeal appeal, List<ErrorMessage> errorList) {
         if (Objects.isNull(appeal)) {
-            errorList.add(getMissingFieldErrorText(APPEAL));
+            addMissingFieldError(APPEAL, errorList);
             return;
         }
         validateFieldNotEmpty(appeal.getAppealSuccessful(), APPEAL_SUCCESSFUL, errorList);
@@ -94,33 +96,39 @@ public class ApiCreateIojAppealRequestValidator {
     }
 
     // check the appeal reason is of type HARDIOJ
-    private void validateAppealReasonType(NewWorkReason appealReason, List<String> errorList) {
+    private void validateAppealReasonType(NewWorkReason appealReason, List<ErrorMessage> errorList) {
         if (Objects.nonNull(appealReason) && !appealReason.getType().equalsIgnoreCase(APPEAL_REASON_HARDIOJ)) {
-            errorList.add(ERROR_APPEAL_REASON_IS_INVALID);
+            addErrorMessage(APPEAL_REASON, ERROR_APPEAL_REASON_IS_INVALID, errorList);
         }
     }
 
     // check appeal reason/appeal accessor combination is valid.
-    private void validateAppealReasonAppealAssessorCombinations(IojAppeal appeal, List<String> errorList) {
+    private void validateAppealReasonAppealAssessorCombinations(IojAppeal appeal, List<ErrorMessage> errorList) {
         NewWorkReason reason = appeal.getAppealReason();
         IojAppealAssessor assessor = appeal.getAppealAssessor();
         // Null check Assessor as != includes nulls.
         if ((Objects.nonNull(assessor))
                 && (NewWorkReason.NEW.equals(reason) && (!IojAppealAssessor.CASEWORKER.equals(assessor))
                         || (NewWorkReason.JR.equals(reason) && !IojAppealAssessor.JUDGE.equals(assessor)))) {
-            errorList.add(ERROR_INCORRECT_COMBINATION);
+            addErrorMessage(APPEAL_ASSESSOR, ERROR_INCORRECT_COMBINATION, errorList);
         }
     }
 
     // Utility Methods
     private void validateFieldNotEmpty(
-            Object field, ApiCreateIojAppealRequestFields fieldName, List<String> errorList) {
+            Object field, ApiCreateIojAppealRequestFields fieldName, List<ErrorMessage> errorList) {
         if (ObjectUtils.isEmpty(field)) {
-            errorList.add(getMissingFieldErrorText(fieldName));
+            addMissingFieldError(fieldName, errorList);
         }
     }
 
-    private String getMissingFieldErrorText(ApiCreateIojAppealRequestFields fieldName) {
-        return String.format(ERROR_FIELD_IS_MISSING, fieldName.getName());
+    private void addErrorMessage(
+            ApiCreateIojAppealRequestFields fieldname, String errorMessage, List<ErrorMessage> errorList) {
+        errorList.add(new ErrorMessage(fieldname.getName(), errorMessage));
+    }
+
+    private void addMissingFieldError(ApiCreateIojAppealRequestFields fieldName, List<ErrorMessage> errorList) {
+        String errorMessage = String.format(ERROR_FIELD_IS_MISSING, fieldName.getName());
+        addErrorMessage(fieldName, errorMessage, errorList);
     }
 }
