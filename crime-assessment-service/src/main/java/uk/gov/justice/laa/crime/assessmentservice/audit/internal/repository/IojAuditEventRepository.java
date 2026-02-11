@@ -1,9 +1,17 @@
 package uk.gov.justice.laa.crime.assessmentservice.audit.internal.repository;
 
+import uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditEventType;
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.entity.IojAuditEventEntity;
 
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface IojAuditEventRepository extends JpaRepository<IojAuditEventEntity, UUID> {}
+public interface IojAuditEventRepository extends JpaRepository<IojAuditEventEntity, UUID> {
+
+    <T> T findIojAuditEventEntitiesByLegacyAppealId(Long legacyAppealId);
+
+    <T> T findIojAuditEventEntitiesByAppealId(UUID appealId);
+
+    IojAuditEventEntity findIojAuditEventEntitiesByEventType(AuditEventType eventType);
+}

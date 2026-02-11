@@ -1,6 +1,7 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -8,20 +9,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication;
-import uk.gov.justice.laa.crime.assessmentservice.CrimeAssessmentTestConfiguration;
+import uk.gov.justice.laa.crime.assessmentservice.WiremockIntegrationTest;
+import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAudit;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
@@ -34,36 +36,28 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.wiremock.spring.EnableWireMock;
-import org.wiremock.spring.InjectWireMock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.jayway.jsonpath.JsonPath;
 
-@EnableWireMock
 @DirtiesContext
+@AutoConfigureMockMvc
 @AutoConfigureObservability
-@Import(CrimeAssessmentTestConfiguration.class)
-@SpringBootTest(classes = AssessmentServiceApplication.class, webEnvironment = DEFINED_PORT)
-class IojAppealIntegrationTest {
+class IojAppealIntegrationTest extends WiremockIntegrationTest {
 
-    private MockMvc mvc;
     private static final String BEARER_TOKEN = "Bearer token";
     private static final String ENDPOINT_URL = "/api/internal/v1/ioj-appeals";
     private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + TestConstants.APPEAL_ID;
@@ -72,8 +66,8 @@ class IojAppealIntegrationTest {
     private static final String MAAT_API_APPEAL_ROLLBACK_URL =
             MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
 
-    @InjectWireMock
-    private static WireMockServer wiremock;
+    @Autowired
+    private MockMvc mvc;
 
     @Autowired
     private IojAppealRepository iojAppealRepository;
@@ -81,11 +75,8 @@ class IojAppealIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private FilterChainProxy springSecurityFilterChain;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    @MockitoBean
+    private IojAudit iojAudit;
 
     @MockitoSpyBean
     IojAppealService iojAppealService;
@@ -93,9 +84,7 @@ class IojAppealIntegrationTest {
     @BeforeEach
     void setup() throws JsonProcessingException {
         stubForOAuth();
-        this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
-                .addFilter(springSecurityFilterChain)
-                .build();
+        Mockito.reset(iojAudit);
         iojAppealRepository.deleteAll();
     }
 
@@ -108,6 +97,7 @@ class IojAppealIntegrationTest {
     void givenAppealDoesNotExist_whenFindIojAppealIsInvoked_thenFailsWithNotFound() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
+        Mockito.verify(iojAudit).recordFindByAppealId(UUID.fromString(TestConstants.APPEAL_ID), false);
     }
 
     @Test
@@ -129,6 +119,25 @@ class IojAppealIntegrationTest {
                 .andExpect(jsonPath("$.notes").value(iojAppealEntity.getNotes()))
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
+
+        Mockito.verify(iojAudit).recordFindByAppealId(iojAppealEntity.getAppealId(), true);
+    }
+
+    @Test
+    void givenLocalMissAndLegacyApiFailure_whenFindByLegacyId_thenReturns5xx() throws Exception {
+
+        wiremock.stubFor(get(urlEqualTo(MAAT_API_APPEAL_URL + "/" + TestConstants.LEGACY_APPEAL_ID))
+                .willReturn(WireMock.serverError()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"message\":\"example failure\"}")));
+
+        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().is5xxServerError());
+
+        verify(getRequestedFor(urlEqualTo(MAAT_API_APPEAL_URL + "/" + TestConstants.LEGACY_APPEAL_ID)));
+        Mockito.verify(iojAudit)
+                .recordFindByLegacyIdLegacyFailure(eq(TestConstants.LEGACY_APPEAL_ID), any(Exception.class));
     }
 
     @Test
@@ -150,6 +159,8 @@ class IojAppealIntegrationTest {
                 .andExpect(jsonPath("$.notes").value(iojAppealEntity.getNotes()))
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
+
+        Mockito.verify(iojAudit).recordFindByLegacyIdHit(iojAppealEntity.getLegacyAppealId());
     }
 
     @Test
@@ -185,6 +196,8 @@ class IojAppealIntegrationTest {
                 .andExpect(jsonPath("$.notes").value(response.getNotes()))
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(response.getCaseManagementUnitId()));
+
+        Mockito.verify(iojAudit).recordFindByLegacyIdMissThenLegacyResult(response.getLegacyAppealId(), true);
     }
 
     @Test
@@ -205,16 +218,17 @@ class IojAppealIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn();
-        String appealId = JsonPath.read(result.getResponse().getContentAsString(), "$.appealId");
+
+        UUID appealId = UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.appealId"));
         Integer legacyAppealId = JsonPath.read(result.getResponse().getContentAsString(), "$.legacyAppealId");
 
-        // verify we've created.
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount + 1);
-        assertThat(iojAppealRepository.findIojAppealByAppealId(UUID.fromString(appealId)))
+        assertThat(iojAppealRepository.findIojAppealByAppealId(appealId))
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("legacyAppealId", legacyAppealId);
-        assertThat(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId))
-                .isNotNull();
+
+        Mockito.verify(iojAudit)
+                .recordCreateSuccess(eq(appealId), eq(legacyAppealId), any(ApiCreateIojAppealRequest.class));
     }
 
     @Test
@@ -233,7 +247,7 @@ class IojAppealIntegrationTest {
     }
 
     @Test
-    void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsWritten() throws Exception {
+    void givenUpdateFailure_whenCreateIsInvoked_thenAppealIsRolledBack() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         var response = new ApiCreateIojAppealResponse().withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
@@ -256,6 +270,12 @@ class IojAppealIntegrationTest {
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
+        Mockito.verify(iojAudit)
+                .recordCreateFailure(
+                        any(UUID.class),
+                        any(Integer.class),
+                        any(ApiCreateIojAppealRequest.class),
+                        any(Exception.class));
     }
 
     private void setupEntity(IojAppealEntity iojAppealEntity) {
