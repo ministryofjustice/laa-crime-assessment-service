@@ -6,10 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
@@ -33,20 +32,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc(addFilters = false)
 class IojAppealControllerTest {
 
-    @MockitoBean
-    private IojAppealService iojAppealService;
-
-    @MockitoBean
-    private LegacyIojAppealService legacyIojAppealService;
-
-    @MockitoBean
-    private IojAppealDualWriteService iojAppealDualWriteService;
-
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private IojAppealDualWriteService iojAppealDualWriteService;
 
     private static final String IOJ_APPEALS_ENDPOINT = "/api/internal/v1/ioj-appeals";
     private static final String FIND_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/{id}";
@@ -63,7 +56,7 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        when(iojAppealService.find(appealId))
+        when(iojAppealDualWriteService.find(appealId))
                 .thenReturn(Optional.of(new ApiGetIojAppealResponse().withAppealId(appealId.toString())));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
@@ -80,8 +73,8 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindLegacyAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         int legacyAppealId = 1;
 
-        when(legacyIojAppealService.find(legacyAppealId))
-                .thenReturn(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId));
+        when(iojAppealDualWriteService.find(legacyAppealId))
+                .thenReturn(Optional.ofNullable(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId)));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
                 .andExpect(status().isOk());
@@ -90,15 +83,18 @@ class IojAppealControllerTest {
     @Test
     void givenEndpoint_whenCreateEndpointCalledWithValidRequest_thenOkResponseWithIds() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
-        var mockEntity = TestDataBuilder.buildIojAppealEntity(true);
-        mockEntity.setAppealId(UUID.randomUUID());
-        when(iojAppealDualWriteService.createIojAppeal(request)).thenReturn(mockEntity);
+        ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
+                .withAppealId(UUID.randomUUID().toString())
+                .withLegacyAppealId(1);
+
+        when(iojAppealDualWriteService.createIojAppeal(request)).thenReturn(response);
+
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.appealId").value(mockEntity.getAppealId().toString()))
-                .andExpect(jsonPath("$.legacyAppealId").value(mockEntity.getLegacyAppealId()));
+                .andExpect(jsonPath("$.appealId").value(response.getAppealId()))
+                .andExpect(jsonPath("$.legacyAppealId").value(response.getLegacyAppealId()));
     }
 
     @Test
