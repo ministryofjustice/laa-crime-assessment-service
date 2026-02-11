@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.crime.assessmentservice.audit.api;
+package uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper;
 
 import java.util.Optional;
 
