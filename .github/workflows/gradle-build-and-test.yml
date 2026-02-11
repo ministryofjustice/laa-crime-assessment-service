@@ -71,7 +71,7 @@ jobs:
           args: --severity-threshold=critical --sarif-file-output=snyk.sarif
 
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
 
@@ -112,6 +112,6 @@ jobs:
           image: crime-assessment-service:scan
           args: --file=crime-assessment-service/Dockerfile --severity-threshold=critical --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
