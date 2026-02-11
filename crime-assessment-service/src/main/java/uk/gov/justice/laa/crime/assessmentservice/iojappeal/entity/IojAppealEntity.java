@@ -71,13 +71,4 @@ public class IojAppealEntity {
     @Builder.Default
     @Column(name = "created_at")
     private LocalDateTime createdDate = LocalDateTime.now();
-
-    @Column(name = "modified_by")
-    private String modifiedBy;
-
-    @Column(name = "modified_at")
-    private LocalDateTime modifiedDate;
-
-    @Column(name = "is_current")
-    private boolean isCurrent;
 }

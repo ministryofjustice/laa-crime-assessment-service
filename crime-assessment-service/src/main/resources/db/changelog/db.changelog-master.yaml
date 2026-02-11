@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/changeset/09-alter-ioj-appeal-table.sql
   - include:
       file: db/changelog/changeset/10-create-ioj-appeal-enum-casts.sql
+  - include:
+      file: db/changelog/changeset/11-alter-ioj-appeal-table.sql

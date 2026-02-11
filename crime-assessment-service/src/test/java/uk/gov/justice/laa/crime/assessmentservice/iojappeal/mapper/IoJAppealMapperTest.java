@@ -15,10 +15,7 @@ class IoJAppealMapperTest {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var entity = iojAppealMapper.mapCreateAppealRequestToEntity(request);
         // check only nulls are known, non-mapped fields.
-        assertThat(entity)
-                .isNotNull()
-                .hasNoNullFieldsOrPropertiesExcept(
-                        "appealId", "legacyAppealId", "modifiedBy", "modifiedDate", "isCurrent");
+        assertThat(entity).isNotNull().hasNoNullFieldsOrPropertiesExcept("appealId", "legacyAppealId");
         assertThat(entity.getCreatedBy())
                 .isEqualTo(request.getIojAppealMetadata().getUserSession().getUserName());
     }
