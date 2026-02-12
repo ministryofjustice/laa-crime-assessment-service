@@ -72,6 +72,7 @@ class IojAppealIntegrationTest {
     private static final String ENDPOINT_URL = "/api/internal/v1/ioj-appeals";
     private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + TestConstants.APPEAL_ID;
     private static final String ENDPOINT_URL_FIND_LEGACY = ENDPOINT_URL + "/lookup-by-legacy-id";
+    private static final String ENDPOINT_URL_ROLLBACK = ENDPOINT_URL + "/rollback/";
     private static final String MAAT_API_APPEAL_URL = "/api/internal/v2/assessment/ioj-appeals";
     private static final String MAAT_API_APPEAL_ROLLBACK_URL =
             MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
@@ -195,6 +196,25 @@ class IojAppealIntegrationTest {
     }
 
     @Test
+    void givenAppealDoesNotExist_whenRollbackAppealIsInvoked_thenFailsWithNotFound() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.patch(ENDPOINT_URL_ROLLBACK).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void givenAppealExists_whenRollbackAppealIsInvoked_thenReturnsSuccess() throws Exception {
+        IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
+        iojAppealEntity = setupEntity(iojAppealEntity);
+
+        mvc.perform(MockMvcRequestBuilders.patch(ENDPOINT_URL_ROLLBACK
+                                + iojAppealEntity.getAppealId().toString())
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isOk());
+
+        verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
+    }
+
+    @Test
     void givenValidCreateRequest_whenCreateIsInvoked_thenSuccess() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
@@ -269,8 +289,8 @@ class IojAppealIntegrationTest {
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
     }
 
-    private void setupEntity(IojAppealEntity iojAppealEntity) {
-        iojAppealRepository.save(iojAppealEntity);
+    private IojAppealEntity setupEntity(IojAppealEntity iojAppealEntity) {
+        return iojAppealRepository.save(iojAppealEntity);
     }
 
     private void stubForOAuth() throws JsonProcessingException {

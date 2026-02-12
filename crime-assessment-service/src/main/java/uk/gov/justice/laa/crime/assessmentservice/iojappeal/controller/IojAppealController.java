@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
@@ -20,6 +22,7 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,5 +70,27 @@ public class IojAppealController implements IojAppealApi {
                 .withAppealId(appealEntity.getAppealId().toString())
                 .withLegacyAppealId(appealEntity.getLegacyAppealId());
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping(path = "/rollback/{appealId}")
+    @Override
+    public ResponseEntity<ApiRollbackIojAppealResponse> rollback(@PathVariable UUID appealId) {
+        Optional<ApiGetIojAppealResponse> iojAppealResponse = iojAppealService.find(appealId);
+
+        if (iojAppealResponse.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ApiGetIojAppealResponse iojAppeal = iojAppealResponse.get();
+
+        ApiRollbackIojAppealRequest rollbackRequest =
+                new ApiRollbackIojAppealRequest(iojAppeal.getAppealId(), iojAppeal.getLegacyAppealId());
+        boolean rollbackSuccessful = iojAppealDualWriteService.rollbackIojAppeal(rollbackRequest);
+
+        return ResponseEntity.ok(ApiRollbackIojAppealResponse.builder()
+                .appealId(iojAppeal.getAppealId())
+                .legacyAppealId(iojAppeal.getLegacyAppealId())
+                .rollbackSuccessful(rollbackSuccessful)
+                .build());
     }
 }

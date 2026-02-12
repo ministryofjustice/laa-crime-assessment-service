@@ -3,6 +3,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -36,5 +37,18 @@ public class IojAppealDualWriteService {
         }
 
         return appealEntity;
+    }
+
+    public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
+        try {
+            // TODO: Call a presumably new service here for creating a new record in the events table
+
+            legacyIojAppealService.rollback(request.getLegacyAppealId());
+        } catch (Exception ex) {
+            // TODO: Log the error
+            return false;
+        }
+
+        return true;
     }
 }
