@@ -5,7 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -40,7 +40,7 @@ class IojAppealControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private IojAppealDualWriteService iojAppealDualWriteService;
+    private IojAppealOrchestrationService iojAppealOrchestrationService;
 
     @MockitoBean
     private TraceIdHandler traceIdHandler;
@@ -60,7 +60,7 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        when(iojAppealDualWriteService.find(appealId))
+        when(iojAppealOrchestrationService.find(appealId))
                 .thenReturn(Optional.of(new ApiGetIojAppealResponse().withAppealId(appealId.toString())));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
@@ -77,7 +77,7 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindLegacyAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         int legacyAppealId = 1;
 
-        when(iojAppealDualWriteService.find(legacyAppealId))
+        when(iojAppealOrchestrationService.find(legacyAppealId))
                 .thenReturn(Optional.ofNullable(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId)));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
@@ -91,7 +91,7 @@ class IojAppealControllerTest {
                 .withAppealId(UUID.randomUUID().toString())
                 .withLegacyAppealId(1);
 
-        when(iojAppealDualWriteService.createIojAppeal(request)).thenReturn(response);
+        when(iojAppealOrchestrationService.createIojAppeal(request)).thenReturn(response);
 
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)

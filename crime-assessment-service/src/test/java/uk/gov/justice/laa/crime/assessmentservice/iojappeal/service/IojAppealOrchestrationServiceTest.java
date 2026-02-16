@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class IojAppealDualWriteServiceTest {
+class IojAppealOrchestrationServiceTest {
 
     @Mock
     private IojAuditRecorder iojAuditRecorder;
@@ -41,7 +41,7 @@ class IojAppealDualWriteServiceTest {
     private LegacyIojAppealService legacyIojAppealService;
 
     @InjectMocks
-    private IojAppealDualWriteService service;
+    private IojAppealOrchestrationService service;
 
     @Test
     void givenLocalPresent_whenFindByAppealId_thenReturnsLocalAndAuditsPresentTrue() {

@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IojAppealDualWriteService {
+public class IojAppealOrchestrationService {
 
     private final IojAuditRecorder iojAuditRecorder;
     private final IojAppealService iojAppealService;

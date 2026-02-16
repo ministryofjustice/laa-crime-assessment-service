@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -30,11 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "IOJ Appeals", description = "Rest API for IOJ Appeals.")
 public class IojAppealController implements IojAppealApi {
 
-    private final IojAppealDualWriteService iojAppealDualWriteService;
+    private final IojAppealOrchestrationService iojAppealOrchestrationService;
 
     @GetMapping(path = "/{appealId}")
     public ResponseEntity<ApiGetIojAppealResponse> find(@PathVariable UUID appealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealDualWriteService.find(appealId);
+        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(appealId);
 
         return response.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -42,7 +42,7 @@ public class IojAppealController implements IojAppealApi {
 
     @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
     public ResponseEntity<ApiGetIojAppealResponse> findByLegacyId(@PathVariable int legacyAppealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealDualWriteService.find(legacyAppealId);
+        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(legacyAppealId);
 
         return response.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -55,7 +55,7 @@ public class IojAppealController implements IojAppealApi {
             throw new CrimeValidationException(validationErrors);
         }
 
-        ApiCreateIojAppealResponse iojAppeal = iojAppealDualWriteService.createIojAppeal(request);
+        ApiCreateIojAppealResponse iojAppeal = iojAppealOrchestrationService.createIojAppeal(request);
 
         return ResponseEntity.ok(iojAppeal);
     }
