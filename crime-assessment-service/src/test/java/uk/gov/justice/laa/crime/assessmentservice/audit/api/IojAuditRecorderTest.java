@@ -6,7 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.TriggeredByResolver;
+import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.ClientIdResolver;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
@@ -38,7 +38,7 @@ class IojAuditRecorderTest {
     private TraceIdHandler traceIdHandler;
 
     @Mock
-    private TriggeredByResolver triggeredByResolver;
+    private ClientIdResolver clientIdResolver;
 
     @InjectMocks
     private IojAuditRecorder iojAuditRecorder;
@@ -49,7 +49,7 @@ class IojAuditRecorderTest {
     @Test
     void givenFoundTrue_whenRecordFindByAppealId_thenSuccessLocalHitPayloadAndAppealIdIdentifierAreRecorded() {
         UUID appealId = UUID.randomUUID();
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordFindByAppealId(appealId, true);
@@ -75,7 +75,7 @@ class IojAuditRecorderTest {
     @Test
     void givenFoundFalse_whenRecordFindByAppealId_thenNotFoundLocalMissPayloadAndNoAppealIdIdentifierAreRecorded() {
         UUID appealId = UUID.randomUUID();
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordFindByAppealId(appealId, false);
@@ -100,7 +100,7 @@ class IojAuditRecorderTest {
     @Test
     void givenLegacyId_whenRecordFindByLegacyIdHit_thenSuccessLocalHitPayloadIsRecorded() {
         int legacyAppealId = 123;
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordFindByLegacyIdHit(legacyAppealId);
@@ -125,7 +125,7 @@ class IojAuditRecorderTest {
     void givenLegacyFoundFlag_whenRecordFindByLegacyIdMissThenLegacyResult_thenExpectedOutcomeAndPathAreRecorded(
             boolean legacyFound, AuditOutcome expectedOutcome, AuditPath expectedPath) {
         int legacyAppealId = 123;
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacyFound);
@@ -152,7 +152,7 @@ class IojAuditRecorderTest {
     void givenException_whenRecordFindByLegacyIdLegacyFailure_thenFailurePathIsRecorded() {
         int legacyAppealId = 123;
         Exception e = new RuntimeException();
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
@@ -177,7 +177,7 @@ class IojAuditRecorderTest {
         int legacyAppealId = 123;
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
 
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordCreateSuccess(appealId, legacyAppealId, request);
@@ -212,7 +212,7 @@ class IojAuditRecorderTest {
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
         Exception e = new RuntimeException("example error");
 
-        when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
         iojAuditRecorder.recordCreateFailure(appealId, legacyAppealId, request, e);
@@ -234,7 +234,7 @@ class IojAuditRecorderTest {
 
     private AuditEventRequest captureSingleRecordedRequest() {
         verify(audit, times(1)).record(requestCaptor.capture());
-        verify(triggeredByResolver, times(1)).resolve();
+        verify(clientIdResolver, times(1)).resolveOrAnonymous();
         verify(traceIdHandler, times(1)).getTraceId();
         return requestCaptor.getValue();
     }

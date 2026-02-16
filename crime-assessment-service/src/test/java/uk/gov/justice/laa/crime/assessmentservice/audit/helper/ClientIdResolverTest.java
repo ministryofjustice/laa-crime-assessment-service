@@ -2,7 +2,7 @@ package uk.gov.justice.laa.crime.assessmentservice.audit.helper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.TriggeredByResolver;
+import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.ClientIdResolver;
 
 import java.time.Instant;
 import java.util.Map;
@@ -15,9 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-class TriggeredByResolverTest {
+class ClientIdResolverTest {
 
-    private final TriggeredByResolver resolver = new TriggeredByResolver();
+    private final ClientIdResolver resolver = new ClientIdResolver();
 
     @AfterEach
     void tearDown() {
@@ -32,8 +32,8 @@ class TriggeredByResolverTest {
     }
 
     @Test
-    void givenNoAuthentication_whenResolve_thenFallbackIsReturned() {
-        assertThat(resolver.resolve()).isEqualTo("anonymous");
+    void givenNoAuthentication_whenResolve_OrAnonymous_thenFallbackIsReturned() {
+        assertThat(resolver.resolveOrAnonymous()).isEqualTo("anonymous");
     }
 
     @Test
@@ -53,7 +53,7 @@ class TriggeredByResolverTest {
         Optional<String> result = resolver.resolveOptional();
 
         assertThat(result).isEmpty();
-        assertThat(resolver.resolve()).isEqualTo("anonymous");
+        assertThat(resolver.resolveOrAnonymous()).isEqualTo("anonymous");
     }
 
     @Test
@@ -64,7 +64,7 @@ class TriggeredByResolverTest {
         Optional<String> result = resolver.resolveOptional();
 
         assertThat(result).isEmpty();
-        assertThat(resolver.resolve()).isEqualTo("anonymous");
+        assertThat(resolver.resolveOrAnonymous()).isEqualTo("anonymous");
     }
 
     @Test
@@ -75,7 +75,7 @@ class TriggeredByResolverTest {
         Optional<String> result = resolver.resolveOptional();
 
         assertThat(result).isEmpty();
-        assertThat(resolver.resolve()).isEqualTo("anonymous");
+        assertThat(resolver.resolveOrAnonymous()).isEqualTo("anonymous");
     }
 
     @Test
@@ -88,7 +88,7 @@ class TriggeredByResolverTest {
         Optional<String> result = resolver.resolveOptional();
 
         assertThat(result).contains("crime-assessment-service");
-        assertThat(resolver.resolve()).isEqualTo("crime-assessment-service");
+        assertThat(resolver.resolveOrAnonymous()).isEqualTo("crime-assessment-service");
     }
 
     private Jwt jwtWithClaims(Map<String, Object> claims) {

@@ -2,7 +2,7 @@ package uk.gov.justice.laa.crime.assessmentservice.audit.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.TriggeredByResolver;
+import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.ClientIdResolver;
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.mapper.AuditPayloads;
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.mapper.IojAuditPayloadMapper;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -20,13 +20,13 @@ public class IojAuditRecorder {
 
     private final AuditEventRecorder audit;
     private final TraceIdHandler traceIdHandler;
-    private final TriggeredByResolver triggeredByResolver;
+    private final ClientIdResolver clientIdResolver;
 
     public void recordFindByAppealId(UUID appealId, boolean found) {
         Map<String, Object> details = IojAuditPayloadMapper.mapFindDetails(appealId);
 
         var traceId = traceIdHandler.getTraceId();
-        var triggeredBy = triggeredByResolver.resolve();
+        var triggeredBy = clientIdResolver.resolveOrAnonymous();
 
         var path = found ? AuditPath.LOCAL_HIT : AuditPath.LOCAL_MISS;
         var outcome = found ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND;
@@ -42,7 +42,7 @@ public class IojAuditRecorder {
     public void recordFindByLegacyIdHit(int legacyAppealId) {
         audit.record(AuditRequests.findIojByLegacyId(
                 legacyAppealId,
-                triggeredByResolver.resolve(),
+                clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
                 AuditPayloads.findPayload(AuditOutcome.SUCCESS, AuditPath.LOCAL_HIT)));
     }
@@ -50,7 +50,7 @@ public class IojAuditRecorder {
     public void recordFindByLegacyIdMissThenLegacyResult(int legacyAppealId, boolean legacyFound) {
         audit.record(AuditRequests.findIojByLegacyId(
                 legacyAppealId,
-                triggeredByResolver.resolve(),
+                clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
                 AuditPayloads.findPayload(
                         legacyFound ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND,
@@ -62,7 +62,7 @@ public class IojAuditRecorder {
 
         audit.record(AuditRequests.findIojByLegacyId(
                 legacyAppealId,
-                triggeredByResolver.resolve(),
+                clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
                 AuditPayloads.findPayload(AuditOutcome.FAILURE, AuditPath.LOCAL_MISS_LEGACY_FAILURE)));
     }
@@ -73,7 +73,7 @@ public class IojAuditRecorder {
         audit.record(AuditRequests.createIoj(
                 appealId,
                 legacyAppealId,
-                triggeredByResolver.resolve(),
+                clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
                 AuditPayloads.createPayload(AuditOutcome.SUCCESS, AuditPath.DUAL_WRITE_SUCCESS, details)));
     }
@@ -86,7 +86,7 @@ public class IojAuditRecorder {
         audit.record(AuditRequests.createIoj(
                 appealId,
                 legacyAppealId,
-                triggeredByResolver.resolve(),
+                clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
                 AuditPayloads.createPayload(AuditOutcome.FAILURE, AuditPath.DUAL_WRITE_FAILURE, details)));
     }
