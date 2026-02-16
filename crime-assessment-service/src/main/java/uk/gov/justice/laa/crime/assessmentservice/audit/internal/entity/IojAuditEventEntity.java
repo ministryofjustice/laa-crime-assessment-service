@@ -19,6 +19,7 @@ import uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditEventType;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
@@ -29,9 +30,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Getter
 @Setter
 @Builder
+@Entity
+@Immutable
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "ioj_appeal_event", schema = "ioj_appeal")
 public class IojAuditEventEntity {
