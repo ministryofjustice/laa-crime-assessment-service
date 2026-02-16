@@ -25,21 +25,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 class IojAuditPayloadMapperTest {
 
     @Test
-    void givenAppealId_whenCreateFindDetails_thenRequestedIdIsPopulatedAsString() {
+    void givenAppealId_whenMapFindDetails_thenRequestedIdIsPopulatedAsString() {
         UUID appealId = UUID.randomUUID();
 
-        Map<String, Object> details = IojAuditPayloadMapper.createFindDetails(appealId);
+        Map<String, Object> details = IojAuditPayloadMapper.mapFindDetails(appealId);
 
         assertThat(details).containsOnlyKeys("requestedId").containsEntry("requestedId", appealId.toString());
     }
 
     @Test
-    void givenRequestWithNullIojAppealAndNullMetadata_whenCreateDetails_thenNestedMapsAreEmpty() {
+    void givenRequestWithNullIojAppealAndNullMetadata_whenMapCreateDetails_thenNestedMapsAreEmpty() {
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
         when(request.getIojAppeal()).thenReturn(null);
         when(request.getIojAppealMetadata()).thenReturn(null);
 
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         assertThat(details)
                 .containsOnlyKeys("iojAppeal", "metadata")
@@ -48,7 +48,7 @@ class IojAuditPayloadMapperTest {
     }
 
     @Test
-    void givenRequestWithPopulatedIojAppealAndMetadata_whenCreateDetails_thenAllFieldsAreMapped() {
+    void givenRequestWithPopulatedIojAppealAndMetadata_whenMapCreateDetails_thenAllFieldsAreMapped() {
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
 
         IojAppeal iojAppeal = mock(IojAppeal.class);
@@ -68,7 +68,7 @@ class IojAuditPayloadMapperTest {
         when(metadata.getLegacyApplicationId()).thenReturn(12345);
         when(metadata.getApplicationReceivedDate()).thenReturn(LocalDate.of(2026, 1, 31));
 
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         assertThat(details).containsOnlyKeys("iojAppeal", "metadata");
 
@@ -97,7 +97,7 @@ class IojAuditPayloadMapperTest {
 
     @ParameterizedTest
     @MethodSource("iojAppealNullFieldCases")
-    void givenIojAppealWithNullField_whenCreateDetails_thenNullFieldIsOmitted(
+    void givenIojAppealWithNullField_whenMapCreateDetails_thenNullFieldIsOmitted(
             LocalDate receivedDate,
             NewWorkReason appealReason,
             IojAppealAssessor appealAssessor,
@@ -118,7 +118,7 @@ class IojAuditPayloadMapperTest {
         when(iojAppeal.getDecisionReason()).thenReturn(decisionReason);
         when(iojAppeal.getDecisionDate()).thenReturn(decisionDate);
 
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> iojMap = (Map<String, Object>) details.get("iojAppeal");
@@ -180,7 +180,7 @@ class IojAuditPayloadMapperTest {
 
     @ParameterizedTest
     @MethodSource("metadataNullFieldCases")
-    void givenMetadataWithNullField_whenCreateDetails_thenNullFieldIsOmitted(
+    void givenMetadataWithNullField_whenMapCreateDetails_thenNullFieldIsOmitted(
             Integer legacyApplicationId,
             LocalDate applicationReceivedDate,
             Integer caseManagementUnitId,
@@ -195,7 +195,7 @@ class IojAuditPayloadMapperTest {
         when(metadata.getApplicationReceivedDate()).thenReturn(applicationReceivedDate);
         when(metadata.getCaseManagementUnitId()).thenReturn(caseManagementUnitId);
 
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> metaMap = (Map<String, Object>) details.get("metadata");

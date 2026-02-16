@@ -13,13 +13,13 @@ import java.util.UUID;
 @UtilityClass
 public final class IojAuditPayloadMapper {
 
-    public static Map<String, Object> createFindDetails(UUID appealId) {
+    public static Map<String, Object> mapFindDetails(UUID appealId) {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("requestedId", appealId.toString());
         return details;
     }
 
-    public static Map<String, Object> createDetails(ApiCreateIojAppealRequest request) {
+    public static Map<String, Object> mapCreateDetails(ApiCreateIojAppealRequest request) {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("iojAppeal", mapIojAppeal(request.getIojAppeal()));
         details.put("metadata", mapMetadata(request.getIojAppealMetadata()));
