@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.WiremockIntegrationTest;
-import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAudit;
+import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
@@ -80,7 +80,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private IojAudit iojAudit;
+    private IojAuditRecorder iojAuditRecorder;
 
     @MockitoSpyBean
     IojAppealService iojAppealService;
@@ -91,7 +91,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     @BeforeEach
     void setup() throws JsonProcessingException {
         stubForOAuth();
-        Mockito.reset(iojAudit);
+        Mockito.reset(iojAuditRecorder);
         iojAppealRepository.deleteAll();
     }
 
@@ -104,7 +104,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     void givenAppealDoesNotExist_whenFindIojAppealIsInvoked_thenFailsWithNotFound() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
-        Mockito.verify(iojAudit).recordFindByAppealId(UUID.fromString(TestConstants.APPEAL_ID), false);
+        Mockito.verify(iojAuditRecorder).recordFindByAppealId(UUID.fromString(TestConstants.APPEAL_ID), false);
     }
 
     @Test
@@ -127,7 +127,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
 
-        Mockito.verify(iojAudit).recordFindByAppealId(iojAppealEntity.getAppealId(), true);
+        Mockito.verify(iojAuditRecorder).recordFindByAppealId(iojAppealEntity.getAppealId(), true);
     }
 
     @Test
@@ -143,7 +143,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(status().is5xxServerError());
 
         verify(getRequestedFor(urlEqualTo(MAAT_API_APPEAL_URL + "/" + TestConstants.LEGACY_APPEAL_ID)));
-        Mockito.verify(iojAudit)
+        Mockito.verify(iojAuditRecorder)
                 .recordFindByLegacyIdLegacyFailure(eq(TestConstants.LEGACY_APPEAL_ID), any(Exception.class));
     }
 
@@ -167,7 +167,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
 
-        Mockito.verify(iojAudit).recordFindByLegacyIdHit(iojAppealEntity.getLegacyAppealId());
+        Mockito.verify(iojAuditRecorder).recordFindByLegacyIdHit(iojAppealEntity.getLegacyAppealId());
     }
 
     @Test
@@ -204,7 +204,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(response.getCaseManagementUnitId()));
 
-        Mockito.verify(iojAudit).recordFindByLegacyIdMissThenLegacyResult(response.getLegacyAppealId(), true);
+        Mockito.verify(iojAuditRecorder).recordFindByLegacyIdMissThenLegacyResult(response.getLegacyAppealId(), true);
     }
 
     @Test
@@ -234,7 +234,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("legacyAppealId", legacyAppealId);
 
-        Mockito.verify(iojAudit)
+        Mockito.verify(iojAuditRecorder)
                 .recordCreateSuccess(eq(appealId), eq(legacyAppealId), any(ApiCreateIojAppealRequest.class));
     }
 
@@ -281,7 +281,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
-        Mockito.verify(iojAudit)
+        Mockito.verify(iojAuditRecorder)
                 .recordCreateFailure(
                         any(UUID.class),
                         any(Integer.class),

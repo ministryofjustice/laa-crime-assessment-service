@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class IojAuditTest {
+class IojAuditRecorderTest {
 
     public static final String TRACE_ID = "trace-abc";
     public static final String CLIENT_ID = "client-123";
@@ -41,7 +41,7 @@ class IojAuditTest {
     private TriggeredByResolver triggeredByResolver;
 
     @InjectMocks
-    private IojAudit iojAudit;
+    private IojAuditRecorder iojAuditRecorder;
 
     @Captor
     private ArgumentCaptor<AuditEventRequest> requestCaptor;
@@ -52,7 +52,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordFindByAppealId(appealId, true);
+        iojAuditRecorder.recordFindByAppealId(appealId, true);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -78,7 +78,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordFindByAppealId(appealId, false);
+        iojAuditRecorder.recordFindByAppealId(appealId, false);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -103,7 +103,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordFindByLegacyIdHit(legacyAppealId);
+        iojAuditRecorder.recordFindByLegacyIdHit(legacyAppealId);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -128,7 +128,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacyFound);
+        iojAuditRecorder.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacyFound);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -155,7 +155,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
+        iojAuditRecorder.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -180,7 +180,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordCreateSuccess(appealId, legacyAppealId, request);
+        iojAuditRecorder.recordCreateSuccess(appealId, legacyAppealId, request);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -215,7 +215,7 @@ class IojAuditTest {
         when(triggeredByResolver.resolve()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAudit.recordCreateFailure(appealId, legacyAppealId, request, e);
+        iojAuditRecorder.recordCreateFailure(appealId, legacyAppealId, request, e);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 

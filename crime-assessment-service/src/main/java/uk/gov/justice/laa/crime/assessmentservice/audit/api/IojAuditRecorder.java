@@ -16,14 +16,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class IojAudit {
+public class IojAuditRecorder {
 
     private final AuditEventRecorder audit;
     private final TraceIdHandler traceIdHandler;
     private final TriggeredByResolver triggeredByResolver;
 
     public void recordFindByAppealId(UUID appealId, boolean found) {
-        Map<String, Object> details = IojAuditPayloadMapper.createFindDetails(appealId);
+        Map<String, Object> details = IojAuditPayloadMapper.mapFindDetails(appealId);
 
         if (found) {
             audit.record(AuditRequests.findIojByAppealId(
@@ -70,7 +70,7 @@ public class IojAudit {
     }
 
     public void recordCreateSuccess(UUID appealId, int legacyAppealId, ApiCreateIojAppealRequest request) {
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         audit.record(AuditRequests.createIoj(
                 appealId,
@@ -83,7 +83,7 @@ public class IojAudit {
     public void recordCreateFailure(UUID appealId, int legacyAppealId, ApiCreateIojAppealRequest request, Exception e) {
         log.error("Failed to update local appeal with legacyAppealId", e);
 
-        Map<String, Object> details = IojAuditPayloadMapper.createDetails(request);
+        Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 
         audit.record(AuditRequests.createIoj(
                 appealId,

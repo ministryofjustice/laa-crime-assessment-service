@@ -2,7 +2,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAudit;
+import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -20,13 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class IojAppealDualWriteService {
 
-    private final IojAudit iojAudit;
+    private final IojAuditRecorder iojAuditRecorder;
     private final IojAppealService iojAppealService;
     private final LegacyIojAppealService legacyIojAppealService;
 
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
         Optional<ApiGetIojAppealResponse> local = iojAppealService.find(appealId);
-        iojAudit.recordFindByAppealId(appealId, local.isPresent());
+        iojAuditRecorder.recordFindByAppealId(appealId, local.isPresent());
         return local;
     }
 
@@ -34,16 +34,16 @@ public class IojAppealDualWriteService {
         Optional<ApiGetIojAppealResponse> local = iojAppealService.find(legacyAppealId);
 
         if (local.isPresent()) {
-            iojAudit.recordFindByLegacyIdHit(legacyAppealId);
+            iojAuditRecorder.recordFindByLegacyIdHit(legacyAppealId);
             return local;
         }
 
         try {
             Optional<ApiGetIojAppealResponse> legacy = legacyIojAppealService.find(legacyAppealId);
-            iojAudit.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacy.isPresent());
+            iojAuditRecorder.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacy.isPresent());
             return legacy;
         } catch (Exception e) {
-            iojAudit.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
+            iojAuditRecorder.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
             throw e;
         }
     }
@@ -57,11 +57,11 @@ public class IojAppealDualWriteService {
         try {
             appealEntity.setLegacyAppealId(legacyAppealId);
             iojAppealService.save(appealEntity);
-            iojAudit.recordCreateSuccess(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request);
+            iojAuditRecorder.recordCreateSuccess(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request);
         } catch (Exception e) {
             legacyIojAppealService.rollback(legacyAppealId);
             iojAppealService.delete(appealEntity);
-            iojAudit.recordCreateFailure(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request, e);
+            iojAuditRecorder.recordCreateFailure(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request, e);
             throw new AssessmentRollbackException(String.format(
                     "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
                     appealEntity.getAppealId().toString(), legacyAppealId, e.getMessage()));

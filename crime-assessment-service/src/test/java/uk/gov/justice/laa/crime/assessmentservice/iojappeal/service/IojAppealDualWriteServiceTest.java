@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAudit;
+import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -32,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class IojAppealDualWriteServiceTest {
 
     @Mock
-    private IojAudit iojAudit;
+    private IojAuditRecorder iojAuditRecorder;
 
     @Mock
     private IojAppealService iojAppealService;
@@ -55,9 +55,9 @@ class IojAppealDualWriteServiceTest {
         assertThat(result).containsSame(response);
 
         verify(iojAppealService).find(appealId);
-        verify(iojAudit).recordFindByAppealId(appealId, true);
+        verify(iojAuditRecorder).recordFindByAppealId(appealId, true);
         verifyNoInteractions(legacyIojAppealService);
-        verifyNoMoreInteractions(iojAudit, iojAppealService);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
     @Test
@@ -71,9 +71,9 @@ class IojAppealDualWriteServiceTest {
         assertThat(result).isEmpty();
 
         verify(iojAppealService).find(appealId);
-        verify(iojAudit).recordFindByAppealId(appealId, false);
+        verify(iojAuditRecorder).recordFindByAppealId(appealId, false);
         verifyNoInteractions(legacyIojAppealService);
-        verifyNoMoreInteractions(iojAudit, iojAppealService);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
     @Test
@@ -88,9 +88,9 @@ class IojAppealDualWriteServiceTest {
         assertThat(result).containsSame(localResponse);
 
         verify(iojAppealService).find(legacyAppealId);
-        verify(iojAudit).recordFindByLegacyIdHit(legacyAppealId);
+        verify(iojAuditRecorder).recordFindByLegacyIdHit(legacyAppealId);
         verifyNoInteractions(legacyIojAppealService);
-        verifyNoMoreInteractions(iojAudit, iojAppealService);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
     @Test
@@ -107,8 +107,8 @@ class IojAppealDualWriteServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
-        verify(iojAudit).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, true);
-        verifyNoMoreInteractions(iojAudit, iojAppealService, legacyIojAppealService);
+        verify(iojAuditRecorder).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, true);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
     }
 
     @Test
@@ -124,8 +124,8 @@ class IojAppealDualWriteServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
-        verify(iojAudit).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, false);
-        verifyNoMoreInteractions(iojAudit, iojAppealService, legacyIojAppealService);
+        verify(iojAuditRecorder).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, false);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
     }
 
     @Test
@@ -140,8 +140,8 @@ class IojAppealDualWriteServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
-        verify(iojAudit).recordFindByLegacyIdLegacyFailure(legacyAppealId, exception);
-        verifyNoMoreInteractions(iojAudit, iojAppealService, legacyIojAppealService);
+        verify(iojAuditRecorder).recordFindByLegacyIdLegacyFailure(legacyAppealId, exception);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
     }
 
     @Test
@@ -161,7 +161,7 @@ class IojAppealDualWriteServiceTest {
 
         verify(entity).setLegacyAppealId(999);
         verify(iojAppealService).save(entity);
-        verify(iojAudit).recordCreateSuccess(appealId, 999, request);
+        verify(iojAuditRecorder).recordCreateSuccess(appealId, 999, request);
 
         assertThat(result.getAppealId()).isEqualTo(appealId.toString());
         assertThat(result.getLegacyAppealId()).isEqualTo(999);
@@ -169,7 +169,7 @@ class IojAppealDualWriteServiceTest {
         verify(legacyIojAppealService, never()).rollback(anyInt());
         verify(iojAppealService, never()).delete(any());
 
-        verifyNoMoreInteractions(iojAudit, iojAppealService, legacyIojAppealService, entity);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService, entity);
     }
 
     @Test
@@ -201,8 +201,8 @@ class IojAppealDualWriteServiceTest {
         verify(legacyIojAppealService).rollback(1001);
 
         // failure audit uses legacy id + exception
-        verify(iojAudit).recordCreateFailure(appealId, 1001, request, exception);
+        verify(iojAuditRecorder).recordCreateFailure(appealId, 1001, request, exception);
 
-        verifyNoMoreInteractions(iojAudit, iojAppealService, legacyIojAppealService, entity);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService, entity);
     }
 }
