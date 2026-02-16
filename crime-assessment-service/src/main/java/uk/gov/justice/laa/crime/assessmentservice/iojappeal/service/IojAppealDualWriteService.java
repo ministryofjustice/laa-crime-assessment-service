@@ -61,7 +61,8 @@ public class IojAppealDualWriteService {
         } catch (Exception e) {
             legacyIojAppealService.rollback(legacyAppealId);
             iojAppealService.delete(appealEntity);
-            iojAuditRecorder.recordCreateFailure(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request, e);
+            iojAuditRecorder.recordCreateFailure(
+                    appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request, e);
             throw new AssessmentRollbackException(String.format(
                     "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
                     appealEntity.getAppealId().toString(), legacyAppealId, e.getMessage()));

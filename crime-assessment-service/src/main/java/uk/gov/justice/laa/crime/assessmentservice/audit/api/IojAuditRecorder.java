@@ -25,20 +25,18 @@ public class IojAuditRecorder {
     public void recordFindByAppealId(UUID appealId, boolean found) {
         Map<String, Object> details = IojAuditPayloadMapper.mapFindDetails(appealId);
 
-        if (found) {
-            audit.record(AuditRequests.findIojByAppealId(
-                    appealId,
-                    triggeredByResolver.resolve(),
-                    traceIdHandler.getTraceId(),
-                    AuditPayloads.findPayload(AuditOutcome.SUCCESS, AuditPath.LOCAL_HIT, details)));
-        } else {
-            // Key rule: on NOT_FOUND, don't include APPEAL_ID identifier (so FK column stays null),
-            // but do include requestedId in payload details.
-            audit.record(AuditRequests.findIojNotFoundByAppealId(
-                    triggeredByResolver.resolve(),
-                    traceIdHandler.getTraceId(),
-                    AuditPayloads.findPayload(AuditOutcome.NOT_FOUND, AuditPath.LOCAL_MISS, details)));
-        }
+        var traceId = traceIdHandler.getTraceId();
+        var triggeredBy = triggeredByResolver.resolve();
+
+        var path = found ? AuditPath.LOCAL_HIT : AuditPath.LOCAL_MISS;
+        var outcome = found ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND;
+
+        // On NOT_FOUND, don't include APPEAL_ID identifier (so FK column stays null)
+        // but do include requestedId in payload details.
+        UUID identifierAppealId = found ? appealId : null;
+
+        audit.record(AuditRequests.findIojByAppealId(
+                identifierAppealId, triggeredBy, traceId, AuditPayloads.findPayload(outcome, path, details)));
     }
 
     public void recordFindByLegacyIdHit(int legacyAppealId) {
