@@ -24,7 +24,7 @@ public class IojAuditEventPersister implements AuditEventPersister {
     @Override
     public void persist(AuditEventRequest request) {
 
-        UUID appealUuid = request.getIdentifierByName(AuditIdentifierType.APPEAL_ID)
+        UUID appealId = request.getIdentifierByName(AuditIdentifierType.APPEAL_ID)
                 .map(AuditIdentifier::value)
                 .map(UUID::fromString)
                 .orElse(null);
@@ -35,7 +35,7 @@ public class IojAuditEventPersister implements AuditEventPersister {
                 .orElse(null);
 
         IojAuditEventEntity entity = IojAuditEventEntity.builder()
-                .appealId(appealUuid)
+                .appealId(appealId)
                 .legacyAppealId(legacyId)
                 .eventType(request.eventType())
                 .auditPayload(toJsonOrNull(request.auditPayload()))
