@@ -38,6 +38,10 @@ public class IojAppealOrchestrationService {
             return local;
         }
 
+        return findInLegacyAfterLocalMiss(legacyAppealId);
+    }
+
+    private Optional<ApiGetIojAppealResponse> findInLegacyAfterLocalMiss(int legacyAppealId) {
         try {
             Optional<ApiGetIojAppealResponse> legacy = legacyIojAppealService.find(legacyAppealId);
             iojAuditRecorder.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacy.isPresent());
