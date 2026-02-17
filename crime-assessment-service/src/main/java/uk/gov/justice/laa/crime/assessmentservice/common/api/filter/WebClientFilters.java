@@ -17,7 +17,7 @@ public class WebClientFilters {
         return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
             if (clientResponse.statusCode().is2xxSuccessful()
                     || clientResponse.statusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
-                log.info("✅ Response status: {}", clientResponse.statusCode());
+                log.info("✅   Response status: {}", clientResponse.statusCode());
             } else if (clientResponse.statusCode().is4xxClientError()
                     || clientResponse.statusCode().is5xxServerError()) {
                 log.error("❌  Response status: {}", clientResponse.statusCode());
