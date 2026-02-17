@@ -12,13 +12,14 @@ public final class AuditRequests {
     public static AuditEventRequest findIojByAppealId(
             UUID appealId, String triggeredBy, String traceId, Map<String, Object> payload) {
 
-        var builder = base(AuditEventType.FIND, triggeredBy, traceId, payload);
+        var requestBuilder = base(AuditEventType.FIND, triggeredBy, traceId, payload);
 
         if (appealId != null) {
-            builder.identifiers(List.of(new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString())));
+            requestBuilder.identifiers(
+                    List.of(new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString())));
         }
 
-        return builder.build();
+        return requestBuilder.build();
     }
 
     public static AuditEventRequest findIojByLegacyId(
