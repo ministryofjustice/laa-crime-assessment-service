@@ -25,11 +25,11 @@ public class IojAuditRecorder {
     public void recordFindByAppealId(UUID appealId, boolean found) {
         Map<String, Object> details = IojAuditPayloadMapper.mapFindDetails(appealId);
 
-        var traceId = traceIdHandler.getTraceId();
-        var triggeredBy = clientIdResolver.resolveOrAnonymous();
+        String traceId = traceIdHandler.getTraceId();
+        String triggeredBy = clientIdResolver.resolveOrAnonymous();
 
-        var path = found ? AuditPath.LOCAL_HIT : AuditPath.LOCAL_MISS;
-        var outcome = found ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND;
+        AuditPath path = found ? AuditPath.LOCAL_HIT : AuditPath.LOCAL_MISS;
+        AuditOutcome outcome = found ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND;
 
         // On NOT_FOUND, don't include APPEAL_ID identifier (so FK column stays null)
         // but do include requestedId in payload details.
