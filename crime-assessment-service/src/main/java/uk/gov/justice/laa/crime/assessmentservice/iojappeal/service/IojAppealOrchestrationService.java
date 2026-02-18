@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -23,6 +24,7 @@ public class IojAppealOrchestrationService {
     private final IojAuditRecorder iojAuditRecorder;
     private final IojAppealService iojAppealService;
     private final LegacyIojAppealService legacyIojAppealService;
+    private final IojAppealMigrationProperties migrationProperties;
 
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
         Optional<ApiGetIojAppealResponse> local = iojAppealService.find(appealId);
@@ -34,8 +36,13 @@ public class IojAppealOrchestrationService {
         Optional<ApiGetIojAppealResponse> local = iojAppealService.find(legacyAppealId);
 
         if (local.isPresent()) {
-            iojAuditRecorder.recordFindByLegacyIdHit(legacyAppealId);
+            iojAuditRecorder.recordFindByLegacyId(legacyAppealId, true);
             return local;
+        }
+
+        if (!migrationProperties.legacyReadFallbackEnabled()) {
+            iojAuditRecorder.recordFindByLegacyId(legacyAppealId, false);
+            return Optional.empty();
         }
 
         return findInLegacyAfterLocalMiss(legacyAppealId);

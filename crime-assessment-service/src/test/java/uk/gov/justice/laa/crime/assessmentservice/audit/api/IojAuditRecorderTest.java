@@ -97,13 +97,16 @@ class IojAuditRecorderTest {
         assertThat(details.toString()).contains(appealId.toString());
     }
 
-    @Test
-    void givenLegacyId_whenRecordFindByLegacyIdHit_thenSuccessLocalHitPayloadIsRecorded() {
+    @ParameterizedTest(name = "givenLegacyId_whenRecordFindByLegacy_found={0}_thenPath={1}_andOutcome={2}")
+    @MethodSource("legacyFindCases")
+    void givenLegacyId_whenRecordFindByLegacy_thenPayloadIsRecorded(
+            boolean found, AuditPath expectedPath, AuditOutcome expectedOutcome) {
+
         int legacyAppealId = 123;
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAuditRecorder.recordFindByLegacyIdHit(legacyAppealId);
+        iojAuditRecorder.recordFindByLegacyId(legacyAppealId, found);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -115,9 +118,15 @@ class IojAuditRecorderTest {
                 .isEqualTo(String.valueOf(legacyAppealId));
 
         Map<String, Object> payload = payload(req);
-        assertThat(payload).containsEntry("path", AuditPath.LOCAL_HIT).containsEntry("outcome", AuditOutcome.SUCCESS);
+        assertThat(payload).containsEntry("path", expectedPath).containsEntry("outcome", expectedOutcome);
 
         assertThat(details(payload)).isEqualTo(Map.of());
+    }
+
+    private static Stream<Arguments> legacyFindCases() {
+        return Stream.of(
+                Arguments.of(true, AuditPath.LOCAL_HIT, AuditOutcome.SUCCESS),
+                Arguments.of(false, AuditPath.LOCAL_MISS, AuditOutcome.NOT_FOUND));
     }
 
     @ParameterizedTest

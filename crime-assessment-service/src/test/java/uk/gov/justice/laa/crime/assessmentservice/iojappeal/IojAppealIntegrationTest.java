@@ -167,7 +167,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
 
-        Mockito.verify(iojAuditRecorder).recordFindByLegacyIdHit(iojAppealEntity.getLegacyAppealId());
+        Mockito.verify(iojAuditRecorder).recordFindByLegacyId(iojAppealEntity.getLegacyAppealId(), true);
     }
 
     @Test

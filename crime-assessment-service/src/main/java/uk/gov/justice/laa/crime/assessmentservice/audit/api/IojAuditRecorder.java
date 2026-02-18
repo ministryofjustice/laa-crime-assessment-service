@@ -39,12 +39,15 @@ public class IojAuditRecorder {
                 identifierAppealId, triggeredBy, traceId, AuditPayloads.findPayload(outcome, path, details)));
     }
 
-    public void recordFindByLegacyIdHit(int legacyAppealId) {
+    public void recordFindByLegacyId(int legacyAppealId, boolean found) {
+        AuditPath path = found ? AuditPath.LOCAL_HIT : AuditPath.LOCAL_MISS;
+        AuditOutcome outcome = found ? AuditOutcome.SUCCESS : AuditOutcome.NOT_FOUND;
+
         audit.record(AuditRequests.findIojByLegacyId(
                 legacyAppealId,
                 clientIdResolver.resolveOrAnonymous(),
                 traceIdHandler.getTraceId(),
-                AuditPayloads.findPayload(AuditOutcome.SUCCESS, AuditPath.LOCAL_HIT)));
+                AuditPayloads.findPayload(outcome, path)));
     }
 
     public void recordFindByLegacyIdMissThenLegacyResult(int legacyAppealId, boolean legacyFound) {

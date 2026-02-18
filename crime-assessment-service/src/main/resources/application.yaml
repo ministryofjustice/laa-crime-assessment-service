@@ -80,6 +80,11 @@ springdoc:
     path: /open-api/swagger-ui
     operationsSorter: method
 
+ioj:
+  appeal:
+    migration:
+      legacy-read-fallback-enabled: true
+
 sentry:
   dsn: ${SENTRY_DSN}
   environment: ${SENTRY_ENV}

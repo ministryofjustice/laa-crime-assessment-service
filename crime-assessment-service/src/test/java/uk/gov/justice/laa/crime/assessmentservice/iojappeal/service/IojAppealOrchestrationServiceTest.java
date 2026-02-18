@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -21,9 +22,13 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,8 +45,15 @@ class IojAppealOrchestrationServiceTest {
     @Mock
     private LegacyIojAppealService legacyIojAppealService;
 
+    @Mock
+    private IojAppealMigrationProperties migrationProperties;
+
     @InjectMocks
     private IojAppealOrchestrationService service;
+
+    private void setupMigrationStub() {
+        when(migrationProperties.legacyReadFallbackEnabled()).thenReturn(true);
+    }
 
     @Test
     void givenLocalPresent_whenFindByAppealId_thenReturnsLocalAndAuditsPresentTrue() {
@@ -76,25 +88,38 @@ class IojAppealOrchestrationServiceTest {
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
-    @Test
-    void givenLocalPresent_whenFindByLegacyId_thenReturnsLocalAndAuditsHit_andDoesNotCallLegacy() {
-        int legacyAppealId = 123;
-        ApiGetIojAppealResponse localResponse = new ApiGetIojAppealResponse();
+    @ParameterizedTest(name = "givenLocal{0}_whenFindByLegacyId_thenAudits{0}_andDoesNotCallLegacy")
+    @MethodSource("localResultCases")
+    void givenLocalResult_whenFindByLegacyId_thenAuditsResult_andDoesNotCallLegacy(
+            boolean localFound, ApiGetIojAppealResponse localResponse, ApiGetIojAppealResponse expectedResult) {
 
-        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.of(localResponse));
+        int legacyAppealId = 123;
+
+        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.ofNullable(localResponse));
+
+        if (!localFound) {
+            when(migrationProperties.legacyReadFallbackEnabled()).thenReturn(false);
+        }
 
         Optional<ApiGetIojAppealResponse> result = service.find(legacyAppealId);
 
-        assertThat(result).containsSame(localResponse);
+        assertThat(result).isEqualTo(Optional.ofNullable(expectedResult));
 
         verify(iojAppealService).find(legacyAppealId);
-        verify(iojAuditRecorder).recordFindByLegacyIdHit(legacyAppealId);
+        verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, localFound);
         verifyNoInteractions(legacyIojAppealService);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
+    private static Stream<Arguments> localResultCases() {
+        ApiGetIojAppealResponse response = new ApiGetIojAppealResponse();
+
+        return Stream.of(Arguments.of(true, response, response), Arguments.of(false, null, null));
+    }
+
     @Test
     void givenLocalEmptyAndLegacyPresent_whenFindByLegacyId_thenReturnsLegacyAndAuditsMissThenLegacyResultTrue() {
+        setupMigrationStub();
         int legacyAppealId = 456;
         ApiGetIojAppealResponse legacyResponse = new ApiGetIojAppealResponse();
 
@@ -113,6 +138,7 @@ class IojAppealOrchestrationServiceTest {
 
     @Test
     void givenLocalEmptyAndLegacyEmpty_whenFindByLegacyId_thenReturnsEmptyAndAuditsMissThenLegacyResultFalse() {
+        setupMigrationStub();
         int legacyAppealId = 789;
 
         when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
@@ -130,6 +156,7 @@ class IojAppealOrchestrationServiceTest {
 
     @Test
     void givenLocalEmptyAndLegacyThrows_whenFindByLegacyId_thenAuditsFailureAndRethrows() {
+        setupMigrationStub();
         int legacyAppealId = 42;
         RuntimeException exception = new RuntimeException("legacy down");
 

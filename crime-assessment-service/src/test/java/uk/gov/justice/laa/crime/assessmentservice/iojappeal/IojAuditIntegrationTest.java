@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,6 +21,7 @@ import uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditOutcome;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditPath;
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.entity.IojAuditEventEntity;
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.repository.IojAuditEventRepository;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppealRepository;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
@@ -76,6 +78,9 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
     @MockitoSpyBean
     private IojAppealService iojAppealService;
 
+    @MockitoSpyBean
+    private IojAppealMigrationProperties migrationProperties;
+
     @BeforeEach
     void setup() throws JsonProcessingException {
         stubForOAuth();
@@ -116,6 +121,25 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
 
         assertThat(event.getAuditPayload().path("outcome").asText()).isEqualTo(AuditOutcome.SUCCESS.toString());
         assertThat(event.getAuditPayload().path("path").asText()).isEqualTo(AuditPath.LOCAL_HIT.toString());
+    }
+
+    @Test
+    void givenLocalMissAndFallbackIsDisabled_whenFindByLegacyId_thenAuditRecordIsPersisted() throws Exception {
+        IojAppealEntity entity = TestDataBuilder.buildIojAppealEntity();
+        entity.setLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
+
+        doReturn(false).when(migrationProperties).legacyReadFallbackEnabled();
+
+        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+
+        IojAuditEventEntity event =
+                awaitAuditEvent(() -> iojAuditEventRepository.findIojAuditEventEntitiesByLegacyAppealId(
+                        TestConstants.LEGACY_APPEAL_ID.longValue()));
+
+        assertThat(event.getAuditPayload().path("outcome").asText()).isEqualTo(AuditOutcome.NOT_FOUND.toString());
+        assertThat(event.getAuditPayload().path("path").asText()).isEqualTo(AuditPath.LOCAL_MISS.toString());
     }
 
     @Test
