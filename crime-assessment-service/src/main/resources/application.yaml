@@ -1,6 +1,6 @@
 spring:
   application:
-    name: LAA Crime Court Message Processor Microservice
+    name: LAA Crime Assessment Microservice
   profiles:
     active: dev
   cloud:
@@ -79,6 +79,11 @@ springdoc:
   swagger-ui:
     path: /open-api/swagger-ui
     operationsSorter: method
+
+ioj:
+  appeal:
+    migration:
+      legacy-read-fallback-enabled: true
 
 sentry:
   dsn: ${SENTRY_DSN}

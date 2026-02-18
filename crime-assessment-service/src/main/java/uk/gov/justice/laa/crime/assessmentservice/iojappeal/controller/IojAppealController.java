@@ -3,11 +3,8 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.exception.CrimeValidationException;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealDualWriteService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealService;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.LegacyIojAppealService;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -33,25 +30,22 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "IOJ Appeals", description = "Rest API for IOJ Appeals.")
 public class IojAppealController implements IojAppealApi {
 
-    private final IojAppealService iojAppealService;
-    private final IojAppealDualWriteService iojAppealDualWriteService;
-    private final LegacyIojAppealService legacyIojAppealService;
+    private final IojAppealOrchestrationService iojAppealOrchestrationService;
 
     @GetMapping(path = "/{appealId}")
-    public ResponseEntity<ApiGetIojAppealResponse> getAppeal(@PathVariable UUID appealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealService.find(appealId);
+    public ResponseEntity<ApiGetIojAppealResponse> find(@PathVariable UUID appealId) {
+        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(appealId);
 
         return response.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
-    public ResponseEntity<ApiGetIojAppealResponse> getAppealByLegacyAppealId(@PathVariable int legacyAppealId) {
-        ApiGetIojAppealResponse response = legacyIojAppealService.find(legacyAppealId);
+    public ResponseEntity<ApiGetIojAppealResponse> findByLegacyId(@PathVariable int legacyAppealId) {
+        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(legacyAppealId);
 
-        return response != null
-                ? ResponseEntity.ok(response)
-                : ResponseEntity.notFound().build();
+        return response.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -61,11 +55,8 @@ public class IojAppealController implements IojAppealApi {
             throw new CrimeValidationException(validationErrors);
         }
 
-        IojAppealEntity appealEntity = iojAppealDualWriteService.createIojAppeal(request);
+        ApiCreateIojAppealResponse iojAppeal = iojAppealOrchestrationService.createIojAppeal(request);
 
-        ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
-                .withAppealId(appealEntity.getAppealId().toString())
-                .withLegacyAppealId(appealEntity.getLegacyAppealId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(iojAppeal);
     }
 }

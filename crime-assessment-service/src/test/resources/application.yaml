@@ -25,7 +25,7 @@ spring:
       client:
         provider:
           maat-api:
-            token-uri: http://localhost:${wiremock.server.port}/oauth2/token
+            token-uri: ${WIREMOCK_ISSUER_URI:http://localhost:9999}/oauth2/token
         registration:
           maat-api:
             client-id: dummy-client
@@ -34,7 +34,7 @@ spring:
 
       resource-server:
         jwt:
-          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9999}
+          issuer-uri: ${WIREMOCK_ISSUER_URI:http://localhost:9999}
       
 logging:
   level:
@@ -44,7 +44,7 @@ logging:
 
 services:
   maat-api:
-    base-url: http://localhost:${wiremock.server.port}
+    base-url: ${WIREMOCK_ISSUER_URI:http://localhost:9999}
     registrationId: maat-api
 
 resilience4j:
@@ -61,3 +61,8 @@ resilience4j:
           - org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests
           - org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
           - org.springframework.web.reactive.function.client.WebClientResponseException.GatewayTimeout
+
+ioj:
+  appeal:
+    migration:
+      legacy-read-fallback-enabled: true

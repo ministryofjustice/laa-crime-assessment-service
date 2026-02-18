@@ -19,12 +19,12 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@Builder
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "ioj_appeal", schema = "ioj_appeal")
 public class IojAppealEntity {

@@ -27,7 +27,7 @@ public interface IojAppealApi {
     @ApiResponse(responseCode = "400", description = "Bad request")
     @ApiResponse(responseCode = "404", description = "IoJ Appeal not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    ResponseEntity<ApiGetIojAppealResponse> getAppeal(@PathVariable UUID appealId);
+    ResponseEntity<ApiGetIojAppealResponse> find(@PathVariable UUID appealId);
 
     @Operation(description = "Find an IoJ Appeal by its legacy appeal ID")
     @ApiResponse(
@@ -40,7 +40,7 @@ public interface IojAppealApi {
     @ApiResponse(responseCode = "400", description = "Bad request")
     @ApiResponse(responseCode = "404", description = "IoJ Appeal not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    ResponseEntity<ApiGetIojAppealResponse> getAppealByLegacyAppealId(@PathVariable int legacyAppealId);
+    ResponseEntity<ApiGetIojAppealResponse> findByLegacyId(@PathVariable int legacyAppealId);
 
     @Operation(description = "Create a new IoJ Appeal")
     @ApiResponse(
