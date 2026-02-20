@@ -15,6 +15,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,9 +34,15 @@ class IojAppealServiceTest {
     @InjectMocks
     private IojAppealService iojAppealService;
 
+    private UUID appealId;
+
+    @BeforeEach
+    void setup() {
+        appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
+    }
+
     @Test
     void givenAppealNotFound_whenFindIsInvoked_thenReturnsEmptyOptional() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
 
         when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(null);
 
@@ -47,9 +54,7 @@ class IojAppealServiceTest {
     }
 
     @Test
-    void givenAppealIsFound_whenFind() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
-
+    void givenAppealIsFound_whenFindIsInvoked_thenReturnsAppeal() {
         IojAppealEntity iojAppealEntity =
                 IojAppealEntity.builder().appealId(appealId).build();
 

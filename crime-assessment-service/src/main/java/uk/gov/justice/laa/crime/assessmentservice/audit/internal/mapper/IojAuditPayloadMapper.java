@@ -27,6 +27,13 @@ public final class IojAuditPayloadMapper {
         return details;
     }
 
+    public static Map<String, Object> mapRollbackDetails(UUID appealId, int legacyAppealId) {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("requestedId", appealId.toString());
+        details.put("legacyAppealId", legacyAppealId);
+        return details;
+    }
+
     private static Map<String, Object> mapIojAppeal(IojAppeal iojAppeal) {
         if (iojAppeal == null) return Map.of();
 

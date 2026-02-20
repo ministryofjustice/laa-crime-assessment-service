@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.ClientIdResolver;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
@@ -229,6 +230,67 @@ class IojAuditRecorderTest {
         AuditEventRequest req = captureSingleRecordedRequest();
 
         assertThat(req.eventType()).isEqualTo(AuditEventType.CREATE);
+        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
+        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent();
+
+        Map<String, Object> payload = payload(req);
+        assertThat(payload)
+                .containsEntry("path", AuditPath.DUAL_WRITE_FAILURE)
+                .containsEntry("outcome", AuditOutcome.FAILURE);
+
+        assertThat(details(payload)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void givenRollbackRequest_whenRecordRollbackSuccess_thenDualWriteSuccessPayloadAndIdentifiersAreRecorded() {
+        UUID appealId = UUID.randomUUID();
+        int legacyAppealId = 123;
+        ApiRollbackIojAppealRequest request = mock(ApiRollbackIojAppealRequest.class);
+
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
+        when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
+
+        iojAuditRecorder.recordRollbackSuccess(appealId, legacyAppealId);
+
+        AuditEventRequest req = captureSingleRecordedRequest();
+
+        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
+        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent()
+                .get()
+                .extracting(AuditIdentifier::value)
+                .isEqualTo(appealId.toString());
+
+        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent()
+                .get()
+                .extracting(AuditIdentifier::value)
+                .isEqualTo(String.valueOf(legacyAppealId));
+
+        Map<String, Object> payload = payload(req);
+        assertThat(payload)
+                .containsEntry("path", AuditPath.DUAL_WRITE_SUCCESS)
+                .containsEntry("outcome", AuditOutcome.SUCCESS);
+
+        assertThat(details(payload)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void givenRollbackRequest_whenRecordRollbackFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
+        UUID appealId = UUID.randomUUID();
+        int legacyAppealId = 123;
+        ApiRollbackIojAppealRequest request = mock(ApiRollbackIojAppealRequest.class);
+        Exception e = new RuntimeException("example error");
+
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
+        when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
+
+        iojAuditRecorder.recordRollbackFailure(appealId, legacyAppealId, e);
+
+        AuditEventRequest req = captureSingleRecordedRequest();
+
+        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
         assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
         assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();

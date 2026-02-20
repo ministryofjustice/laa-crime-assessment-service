@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -82,5 +83,20 @@ public class IojAppealOrchestrationService {
         return new ApiCreateIojAppealResponse()
                 .withAppealId(appealEntity.getAppealId().toString())
                 .withLegacyAppealId(legacyAppealId);
+    }
+
+    @Transactional
+    public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
+        try {
+            legacyIojAppealService.rollback(request.getLegacyAppealId());
+            iojAuditRecorder.recordRollbackSuccess(request.getAppealId(), request.getLegacyAppealId());
+        } catch (Exception ex) {
+            // We can't rollback the rollback attempt, so just log the failure.
+            iojAuditRecorder.recordRollbackFailure(request.getAppealId(), request.getLegacyAppealId(), ex);
+
+            return false;
+        }
+
+        return true;
     }
 }

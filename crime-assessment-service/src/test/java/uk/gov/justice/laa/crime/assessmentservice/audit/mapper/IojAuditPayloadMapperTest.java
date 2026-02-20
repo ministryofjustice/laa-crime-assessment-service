@@ -203,6 +203,18 @@ class IojAuditPayloadMapperTest {
         assertThat(metaMap).doesNotContainKey(expectedMissingKey);
     }
 
+    @Test
+    void givenRequest_whenMapRollbackDetails_thenAllFieldsAreMapped() {
+        UUID appealId = UUID.randomUUID();
+
+        Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, 12345);
+
+        assertThat(details)
+                .containsOnlyKeys("requestedId", "legacyAppealId")
+                .containsEntry("requestedId", appealId.toString())
+                .containsEntry("legacyAppealId", 12345);
+    }
+
     static Stream<Arguments> metadataNullFieldCases() {
         return Stream.of(
                 Arguments.of(null, LocalDate.of(2026, 1, 31), 99, "legacyApplicationId"),

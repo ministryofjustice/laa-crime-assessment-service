@@ -93,4 +93,28 @@ public class IojAuditRecorder {
                 traceIdHandler.getTraceId(),
                 AuditPayloads.createPayload(AuditOutcome.FAILURE, AuditPath.DUAL_WRITE_FAILURE, details)));
     }
+
+    public void recordRollbackSuccess(UUID appealId, int legacyAppealId) {
+        Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, legacyAppealId);
+
+        audit.record(AuditRequests.rollbackIoj(
+                appealId,
+                legacyAppealId,
+                clientIdResolver.resolveOrAnonymous(),
+                traceIdHandler.getTraceId(),
+                AuditPayloads.createPayload(AuditOutcome.SUCCESS, AuditPath.DUAL_WRITE_SUCCESS, details)));
+    }
+
+    public void recordRollbackFailure(UUID appealId, int legacyAppealId, Exception e) {
+        log.error("Failed to rollback appeal with legacyAppealId", e);
+
+        Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, legacyAppealId);
+
+        audit.record(AuditRequests.rollbackIoj(
+                appealId,
+                legacyAppealId,
+                clientIdResolver.resolveOrAnonymous(),
+                traceIdHandler.getTraceId(),
+                AuditPayloads.createPayload(AuditOutcome.FAILURE, AuditPath.DUAL_WRITE_FAILURE, details)));
+    }
 }
