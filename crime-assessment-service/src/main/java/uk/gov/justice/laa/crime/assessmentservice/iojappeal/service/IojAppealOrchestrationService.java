@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
@@ -82,5 +83,19 @@ public class IojAppealOrchestrationService {
         return new ApiCreateIojAppealResponse()
                 .withAppealId(appealEntity.getAppealId().toString())
                 .withLegacyAppealId(legacyAppealId);
+    }
+
+    @Transactional
+    public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
+        try {
+            // TODO: Call a presumably new service here for creating a new record in the events table
+
+            legacyIojAppealService.rollback(request.getLegacyAppealId());
+        } catch (Exception ex) {
+            // TODO: Log the error
+            return false;
+        }
+
+        return true;
     }
 }

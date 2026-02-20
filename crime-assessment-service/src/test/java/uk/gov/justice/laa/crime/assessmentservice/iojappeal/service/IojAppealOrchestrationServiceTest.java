@@ -15,7 +15,9 @@ import static org.mockito.Mockito.when;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
+import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
@@ -231,5 +233,33 @@ class IojAppealOrchestrationServiceTest {
         verify(iojAuditRecorder).recordCreateFailure(appealId, 1001, request, exception);
 
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService, entity);
+    }
+
+    @Test
+    void givenHappyPath_whenRollbackIojAppeal_thenSetsLegacyIdSavesAuditsSuccessAndReturnsResponse() {
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(UUID.randomUUID())
+                .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
+                .build();
+
+        boolean rollbackSuccessful = service.rollbackIojAppeal(request);
+
+        assertThat(rollbackSuccessful).isTrue();
+    }
+
+    @Test
+    void givenExceptionDuringLegacyRollback_whenRollbackIojAppeal_thenIojAppealIsNotRolledBack() {
+        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
+                .appealId(UUID.randomUUID())
+                .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
+                .build();
+
+        doThrow(new RuntimeException("Error during rollback"))
+                .when(legacyIojAppealService)
+                .rollback(TestConstants.LEGACY_APPEAL_ID);
+
+        boolean rollbackSuccessful = service.rollbackIojAppeal(request);
+
+        assertThat(rollbackSuccessful).isFalse();
     }
 }
