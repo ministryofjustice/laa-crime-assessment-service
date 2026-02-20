@@ -88,11 +88,12 @@ public class IojAppealOrchestrationService {
     @Transactional
     public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
         try {
-            // TODO: Call a presumably new service here for creating a new record in the events table
-
             legacyIojAppealService.rollback(request.getLegacyAppealId());
+            iojAuditRecorder.recordRollbackSuccess(request.getAppealId(), request.getLegacyAppealId());
         } catch (Exception ex) {
-            // TODO: Log the error
+            // We can't rollback the rollback attempt, so just log the failure.
+            iojAuditRecorder.recordRollbackFailure(request.getAppealId(), request.getLegacyAppealId(), ex);
+
             return false;
         }
 

@@ -244,6 +244,8 @@ class IojAppealOrchestrationServiceTest {
 
         boolean rollbackSuccessful = service.rollbackIojAppeal(request);
 
+        verify(iojAuditRecorder).recordRollbackSuccess(request.getAppealId(), request.getLegacyAppealId());
+
         assertThat(rollbackSuccessful).isTrue();
     }
 
@@ -254,11 +256,14 @@ class IojAppealOrchestrationServiceTest {
                 .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
                 .build();
 
-        doThrow(new RuntimeException("Error during rollback"))
-                .when(legacyIojAppealService)
-                .rollback(TestConstants.LEGACY_APPEAL_ID);
+        Exception expectedException = new RuntimeException("Error during rollback");
+
+        doThrow(expectedException).when(legacyIojAppealService).rollback(TestConstants.LEGACY_APPEAL_ID);
 
         boolean rollbackSuccessful = service.rollbackIojAppeal(request);
+
+        verify(iojAuditRecorder)
+                .recordRollbackFailure(request.getAppealId(), request.getLegacyAppealId(), expectedException);
 
         assertThat(rollbackSuccessful).isFalse();
     }
