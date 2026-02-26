@@ -12,7 +12,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 @Import(CrimeAssessmentTestConfiguration.class)
 @SpringBootTest(
         classes = AssessmentServiceApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {"WIREMOCK_ISSUER_URI=http://localhost:${wiremock.server.port}"})
 public abstract class WiremockIntegrationTest {
 
