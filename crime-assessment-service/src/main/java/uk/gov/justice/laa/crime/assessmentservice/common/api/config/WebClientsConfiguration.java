@@ -3,7 +3,7 @@ package uk.gov.justice.laa.crime.assessmentservice.common.api.config;
 import io.github.resilience4j.retry.RetryRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.api.client.MaatCourtDataApiClient;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.client.MaatDataApiClient;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.filter.Resilience4jRetryFilter;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.filter.WebClientFilters;
 
@@ -24,10 +24,10 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 @Configuration
 @AllArgsConstructor
 public class WebClientsConfiguration {
-    public static final String MAAT_API_CLIENT_NAME = "maatCourtDataWebClient";
+    public static final String MAAT_API_CLIENT_NAME = "maatDataWebClient";
 
     @Bean(MAAT_API_CLIENT_NAME)
-    WebClient maatCourtDataWebClient(
+    WebClient maatDataWebClient(
             WebClient.Builder webClientBuilder,
             ServicesConfiguration servicesConfiguration,
             ClientRegistrationRepository clientRegistrations,
@@ -48,12 +48,11 @@ public class WebClientsConfiguration {
     }
 
     @Bean
-    MaatCourtDataApiClient maatCourtDataApiClient(
-            @Qualifier("maatCourtDataWebClient") WebClient maatCourtDataWebClient) {
+    MaatDataApiClient maatDataApiClient(@Qualifier("maatDataWebClient") WebClient maatDataWebClient) {
         HttpServiceProxyFactory httpServiceProxyFactory = HttpServiceProxyFactory.builderFor(
-                        WebClientAdapter.create(maatCourtDataWebClient))
+                        WebClientAdapter.create(maatDataWebClient))
                 .build();
-        return httpServiceProxyFactory.createClient(MaatCourtDataApiClient.class);
+        return httpServiceProxyFactory.createClient(MaatDataApiClient.class);
     }
 
     private void configureFilters(

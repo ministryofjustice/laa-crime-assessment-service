@@ -13,7 +13,7 @@ import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
 @HttpExchange()
-public interface MaatCourtDataApiClient {
+public interface MaatDataApiClient {
 
     @GetExchange("/api/internal/v2/assessment/ioj-appeals/{legacyAppealId}")
     ApiGetIojAppealResponse getIojAppeal(@PathVariable Integer legacyAppealId);
