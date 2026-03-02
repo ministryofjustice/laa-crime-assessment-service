@@ -19,7 +19,6 @@ import uk.gov.justice.laa.crime.enums.PassportAssessmentDecisionReason;
 import uk.gov.justice.laa.crime.enums.ReviewType;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -69,16 +68,18 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
 
     @Test
     void givenPassportAssessmentExists_whenFindPassportIsInvoked_thenReturnsPassportAssessment() throws Exception {
+        LocalDateTime localDateTime = LocalDateTime.of(2026, 3, 2, 15, 51, 12, 932911);
+
         DeclaredBenefit declaredBenefit = new DeclaredBenefit()
                 .withBenefitType(BenefitType.ESA)
                 .withBenefitRecipient(BenefitRecipient.APPLICANT)
-                .withLastSignOnDate(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS))
+                .withLastSignOnDate(localDateTime)
                 .withLegacyPartnerId(456);
 
         ApiGetPassportedAssessmentResponse response = new ApiGetPassportedAssessmentResponse()
                 .withLegacyAssessmentId(123)
                 .withUsn(555)
-                .withAssessmentDate(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS))
+                .withAssessmentDate(localDateTime)
                 .withAssessmentReason(NewWorkReason.NEW)
                 .withReviewType(ReviewType.ER)
                 .withDeclaredUnder18(false)
