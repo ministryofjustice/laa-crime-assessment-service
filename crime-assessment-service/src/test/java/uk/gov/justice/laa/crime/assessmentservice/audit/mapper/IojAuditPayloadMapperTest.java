@@ -205,13 +205,13 @@ class IojAuditPayloadMapperTest {
 
     @Test
     void givenRequest_whenMapRollbackDetails_thenAllFieldsAreMapped() {
-        UUID appealId = UUID.randomUUID();
+        String appealId = UUID.randomUUID().toString();
 
         Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, 12345);
 
         assertThat(details)
                 .containsOnlyKeys("requestedId", "legacyAppealId")
-                .containsEntry("requestedId", appealId.toString())
+                .containsEntry("requestedId", appealId)
                 .containsEntry("legacyAppealId", 12345);
     }
 

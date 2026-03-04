@@ -94,7 +94,7 @@ public class IojAuditRecorder {
                 AuditPayloads.createPayload(AuditOutcome.FAILURE, AuditPath.DUAL_WRITE_FAILURE, details)));
     }
 
-    public void recordRollbackSuccess(UUID appealId, int legacyAppealId) {
+    public void recordRollbackSuccess(String appealId, int legacyAppealId) {
         Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, legacyAppealId);
 
         audit.record(AuditRequests.rollbackIoj(
@@ -105,7 +105,7 @@ public class IojAuditRecorder {
                 AuditPayloads.createPayload(AuditOutcome.SUCCESS, AuditPath.DUAL_WRITE_SUCCESS, details)));
     }
 
-    public void recordRollbackFailure(UUID appealId, int legacyAppealId, Exception e) {
+    public void recordRollbackFailure(String appealId, int legacyAppealId, Exception e) {
         log.error("Failed to rollback appeal with legacyAppealId", e);
 
         Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, legacyAppealId);

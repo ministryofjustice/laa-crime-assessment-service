@@ -227,7 +227,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
 
         Mockito.verify(iojAuditRecorder)
-                .recordRollbackSuccess(eq(iojAppealEntity.getAppealId()), eq(iojAppealEntity.getLegacyAppealId()));
+                .recordRollbackSuccess(iojAppealEntity.getAppealId().toString(), iojAppealEntity.getLegacyAppealId());
     }
 
     @Test

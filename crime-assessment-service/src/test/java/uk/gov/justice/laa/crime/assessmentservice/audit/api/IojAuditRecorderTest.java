@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.audit.internal.helper.ClientIdResolver;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
@@ -244,9 +243,8 @@ class IojAuditRecorderTest {
 
     @Test
     void givenRollbackRequest_whenRecordRollbackSuccess_thenDualWriteSuccessPayloadAndIdentifiersAreRecorded() {
-        UUID appealId = UUID.randomUUID();
+        String appealId = UUID.randomUUID().toString();
         int legacyAppealId = 123;
-        ApiRollbackIojAppealRequest request = mock(ApiRollbackIojAppealRequest.class);
 
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
@@ -260,7 +258,7 @@ class IojAuditRecorderTest {
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
-                .isEqualTo(appealId.toString());
+                .isEqualTo(appealId);
 
         assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent()
@@ -278,9 +276,9 @@ class IojAuditRecorderTest {
 
     @Test
     void givenRollbackRequest_whenRecordRollbackFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
-        UUID appealId = UUID.randomUUID();
+        String appealId = UUID.randomUUID().toString();
         int legacyAppealId = 123;
-        ApiRollbackIojAppealRequest request = mock(ApiRollbackIojAppealRequest.class);
+
         Exception e = new RuntimeException("example error");
 
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);

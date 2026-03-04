@@ -42,10 +42,10 @@ public final class AuditRequests {
     }
 
     public static AuditEventRequest rollbackIoj(
-            UUID appealId, int legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
+            String appealId, int legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
         return base(AuditEventType.ROLLBACK, triggeredBy, traceId, payload)
                 .identifiers(List.of(
-                        new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString()),
+                        new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId),
                         new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID, String.valueOf(legacyAppealId))))
                 .build();
     }

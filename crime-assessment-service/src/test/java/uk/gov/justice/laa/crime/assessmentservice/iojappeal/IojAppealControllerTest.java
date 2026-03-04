@@ -5,13 +5,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealRequest;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.dto.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
@@ -154,16 +153,9 @@ class IojAppealControllerTest {
         ApiGetIojAppealResponse iojAppealResponse =
                 new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
 
-        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
-                .appealId(appealId)
-                .legacyAppealId(TEST_ID)
-                .build();
-
-        ApiRollbackIojAppealResponse expectedResponse = ApiRollbackIojAppealResponse.builder()
-                .appealId(appealId.toString())
-                .legacyAppealId(TEST_ID)
-                .rollbackSuccessful(false)
-                .build();
+        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
+                .withAppealId(appealId.toString())
+                .withLegacyAppealId(TEST_ID);
 
         when(iojAppealOrchestrationService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
         when(iojAppealOrchestrationService.rollbackIojAppeal(request)).thenReturn(false);
@@ -182,10 +174,9 @@ class IojAppealControllerTest {
         ApiGetIojAppealResponse iojAppealResponse =
                 new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
 
-        ApiRollbackIojAppealRequest request = ApiRollbackIojAppealRequest.builder()
-                .appealId(appealId)
-                .legacyAppealId(TEST_ID)
-                .build();
+        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
+                .withAppealId(appealId.toString())
+                .withLegacyAppealId(TEST_ID);
 
         when(iojAppealOrchestrationService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
         when(iojAppealOrchestrationService.rollbackIojAppeal(request)).thenReturn(true);
