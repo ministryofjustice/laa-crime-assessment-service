@@ -41,6 +41,11 @@ public class IojAppealOrchestrationService {
             return local;
         }
 
+        if (iojAppealService.hasBeenRolledBack(legacyAppealId)) {
+            iojAuditRecorder.recordFindByLegacyId(legacyAppealId, false);
+            return Optional.empty();
+        }
+
         if (!migrationProperties.legacyReadFallbackEnabled()) {
             iojAuditRecorder.recordFindByLegacyId(legacyAppealId, false);
             return Optional.empty();

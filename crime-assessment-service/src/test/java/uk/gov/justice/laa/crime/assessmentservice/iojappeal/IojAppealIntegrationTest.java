@@ -109,6 +109,34 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     }
 
     @Test
+    void givenAppealHasBeenRolledBack_whenFindIojAppealIsInvoked_thenReturnsNotFound() throws Exception {
+        IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
+        iojAppealEntity.setRolledBackAt(Instant.now());
+        setupEntity(iojAppealEntity);
+
+        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL + "/" + iojAppealEntity.getAppealId())
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+
+        Mockito.verify(iojAuditRecorder).recordFindByAppealId(iojAppealEntity.getAppealId(), false);
+    }
+
+    @Test
+    void givenAppealHasBeenRolledBackLocally_whenFindByLegacyIdIsInvoked_thenReturnsNotFoundWithoutLegacyFallback()
+            throws Exception {
+        IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
+        iojAppealEntity.setRolledBackAt(Instant.now());
+        setupEntity(iojAppealEntity);
+
+        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + iojAppealEntity.getLegacyAppealId())
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+
+        verify(0, getRequestedFor(urlMatching(MAAT_API_APPEAL_URL + "/.*")));
+        Mockito.verify(iojAuditRecorder).recordFindByLegacyId(iojAppealEntity.getLegacyAppealId(), false);
+    }
+
+    @Test
     void givenAppealExists_whenFindIojAppealIsInvoked_thenReturnsAppeal() throws Exception {
         IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
         setupEntity(iojAppealEntity);
@@ -149,7 +177,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     }
 
     @Test
-    void givenAppealExistsInAssessmentService_whenFindLegacyIojAppealIsInvoked_thenReturnsAppeal() throws Exception {
+    void givenAppealExistsLocally_whenFindLegacyIojAppealIsInvoked_thenReturnsAppeal() throws Exception {
         IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
         setupEntity(iojAppealEntity);
 
@@ -167,6 +195,8 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.notes").value(iojAppealEntity.getNotes()))
                 .andExpect(jsonPath("$.decisionDate").value("2025-02-08"))
                 .andExpect(jsonPath("$.caseManagementUnitId").value(iojAppealEntity.getCaseManagementUnitId()));
+
+        verify(0, getRequestedFor(urlMatching(MAAT_API_APPEAL_URL + "/.*")));
 
         Mockito.verify(iojAuditRecorder).recordFindByLegacyId(iojAppealEntity.getLegacyAppealId(), true);
     }

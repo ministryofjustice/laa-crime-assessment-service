@@ -90,6 +90,7 @@ class IojAppealOrchestrationServiceTest {
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
+    @MethodSource("localResultCases")
     @ParameterizedTest(name = "givenLocal{0}_whenFindByLegacyId_thenAudits{0}_andDoesNotCallLegacy")
     @MethodSource("localResultCases")
     void givenLocalResult_whenFindByLegacyId_thenAuditsResult_andDoesNotCallLegacy(
@@ -101,6 +102,7 @@ class IojAppealOrchestrationServiceTest {
 
         if (!localFound) {
             when(migrationProperties.legacyReadFallbackEnabled()).thenReturn(false);
+            when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(false);
         }
 
         Optional<ApiGetIojAppealResponse> result = service.find(legacyAppealId);
@@ -109,6 +111,7 @@ class IojAppealOrchestrationServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, localFound);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
         verifyNoInteractions(legacyIojAppealService);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
@@ -126,6 +129,7 @@ class IojAppealOrchestrationServiceTest {
         ApiGetIojAppealResponse legacyResponse = new ApiGetIojAppealResponse();
 
         when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
+        when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(false);
         when(legacyIojAppealService.find(legacyAppealId)).thenReturn(Optional.of(legacyResponse));
 
         Optional<ApiGetIojAppealResponse> result = service.find(legacyAppealId);
@@ -134,6 +138,7 @@ class IojAppealOrchestrationServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
         verify(iojAuditRecorder).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, true);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
     }
@@ -145,6 +150,7 @@ class IojAppealOrchestrationServiceTest {
 
         when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
         when(legacyIojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
+        when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(false);
 
         Optional<ApiGetIojAppealResponse> result = service.find(legacyAppealId);
 
@@ -152,8 +158,27 @@ class IojAppealOrchestrationServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
         verify(iojAuditRecorder).recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, false);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
+    }
+
+    @Test
+    void givenLocalRolledBack_whenFindByLegacyId_thenReturnsEmptyAndAuditsMissThenLegacyResultFalse() {
+        int legacyAppealId = 789;
+
+        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
+        when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(true);
+
+        Optional<ApiGetIojAppealResponse> result = service.find(legacyAppealId);
+
+        assertThat(result).isEmpty();
+
+        verify(iojAppealService).find(legacyAppealId);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
+        verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, false);
+        verifyNoInteractions(legacyIojAppealService);
+        verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }
 
     @Test
@@ -162,13 +187,15 @@ class IojAppealOrchestrationServiceTest {
         int legacyAppealId = 42;
         RuntimeException exception = new RuntimeException("legacy down");
 
-        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
         when(legacyIojAppealService.find(legacyAppealId)).thenThrow(exception);
+        when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(false);
+        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.find(legacyAppealId)).isSameAs(exception);
 
         verify(iojAppealService).find(legacyAppealId);
         verify(legacyIojAppealService).find(legacyAppealId);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
         verify(iojAuditRecorder).recordFindByLegacyIdLegacyFailure(legacyAppealId, exception);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService, legacyIojAppealService);
     }
