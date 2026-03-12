@@ -17,9 +17,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -52,6 +56,24 @@ public class DefaultExceptionHandler {
             log.warn("Unable to read error response. TraceId={}", getTraceId(), parseEx);
             return buildResponse(ex.getStatusCode(), ProblemDetailError.APPLICATION_ERROR, ex.getMessage(), List.of());
         }
+    }
+
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
+    public ResponseEntity<ProblemDetail> handleBadRequest(Exception ex) {
+        log.warn("Bad request. TraceId={} Detail={}", getTraceId(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        log.warn("Method not supported. TraceId={} Detail={}", getTraceId(), ex.getMessage());
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ProblemDetailError.METHOD_NOT_ALLOWED);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
+        log.warn("Unsupported media type. TraceId={} Detail={}", getTraceId(), ex.getMessage());
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ProblemDetailError.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler(RequestedObjectNotFoundException.class)
