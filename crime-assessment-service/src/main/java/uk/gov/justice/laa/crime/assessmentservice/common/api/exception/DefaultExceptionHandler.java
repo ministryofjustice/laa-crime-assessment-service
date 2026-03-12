@@ -45,6 +45,11 @@ public class DefaultExceptionHandler {
                 exception.getStatusCode(), exception.getStatusCode().toString(), errorMessage);
     }
 
+    @ExceptionHandler(RequestedObjectNotFoundException.class)
+    public ResponseEntity<ProblemDetail> onRuntimeException(RequestedObjectNotFoundException exception) {
+        return buildSimpleErrorResponse(HttpStatus.NOT_FOUND, "Not Found.", exception.getMessage());
+    }
+
     @ExceptionHandler(WebClientRequestException.class)
     public ResponseEntity<ProblemDetail> onRuntimeException(WebClientRequestException exception) {
         return buildSimpleErrorResponse(
