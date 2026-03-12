@@ -28,6 +28,18 @@ public class IojAppealOrchestrationService {
     private final LegacyIojAppealService legacyIojAppealService;
     private final IojAppealMigrationProperties migrationProperties;
 
+    public ApiGetIojAppealResponse findOrThrow(UUID appealId) {
+        return find(appealId)
+                .orElseThrow(
+                        () -> new RequestedObjectNotFoundException("IOJ appeal not found for appealId: " + appealId));
+    }
+
+    public ApiGetIojAppealResponse findOrThrow(int legacyAppealId) {
+        return find(legacyAppealId)
+                .orElseThrow(() -> new RequestedObjectNotFoundException(
+                        "IOJ appeal not found for legacyAppealId: " + legacyAppealId));
+    }
+
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
         Optional<ApiGetIojAppealResponse> local = iojAppealService.find(appealId);
         iojAuditRecorder.recordFindByAppealId(appealId, local.isPresent());

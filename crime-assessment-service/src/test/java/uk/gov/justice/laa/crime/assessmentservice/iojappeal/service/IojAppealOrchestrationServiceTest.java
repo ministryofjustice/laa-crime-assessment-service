@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
@@ -55,6 +56,74 @@ class IojAppealOrchestrationServiceTest {
 
     private void setupMigrationStub() {
         when(migrationProperties.legacyReadFallbackEnabled()).thenReturn(true);
+    }
+
+    @Test
+    void givenAppealExists_whenFindOrThrowByAppealIdIsInvoked_thenReturnsAppeal() {
+        UUID appealId = UUID.randomUUID();
+        ApiGetIojAppealResponse response = new ApiGetIojAppealResponse().withAppealId(appealId.toString());
+
+        when(iojAppealService.find(appealId)).thenReturn(Optional.of(response));
+
+        ApiGetIojAppealResponse result = service.findOrThrow(appealId);
+
+        assertThat(result).isSameAs(response);
+        verify(iojAppealService).find(appealId);
+        verify(iojAuditRecorder).recordFindByAppealId(appealId, true);
+        verifyNoMoreInteractions(iojAppealService, iojAuditRecorder);
+        verifyNoInteractions(legacyIojAppealService, migrationProperties);
+    }
+
+    @Test
+    void givenAppealDoesNotExist_whenFindOrThrowByAppealIdIsInvoked_thenThrowsRequestedObjectNotFoundException() {
+        UUID appealId = UUID.randomUUID();
+
+        when(iojAppealService.find(appealId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findOrThrow(appealId))
+                .isInstanceOf(RequestedObjectNotFoundException.class)
+                .hasMessage("IOJ appeal not found for appealId: " + appealId);
+
+        verify(iojAppealService).find(appealId);
+        verify(iojAuditRecorder).recordFindByAppealId(appealId, false);
+        verifyNoMoreInteractions(iojAppealService, iojAuditRecorder);
+        verifyNoInteractions(legacyIojAppealService, migrationProperties);
+    }
+
+    @Test
+    void givenAppealExists_whenFindOrThrowByLegacyAppealIdIsInvoked_thenReturnsAppeal() {
+        int legacyAppealId = 123;
+        ApiGetIojAppealResponse response = new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId);
+
+        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.of(response));
+
+        ApiGetIojAppealResponse result = service.findOrThrow(legacyAppealId);
+
+        assertThat(result).isSameAs(response);
+        verify(iojAppealService).find(legacyAppealId);
+        verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, true);
+        verifyNoMoreInteractions(iojAppealService, iojAuditRecorder);
+        verifyNoInteractions(legacyIojAppealService, migrationProperties);
+    }
+
+    @Test
+    void givenAppealDoesNotExist_whenFindOrThrowByLegacyAppealIdIsInvoked_thenThrowsRequestedObjectNotFoundException() {
+        int legacyAppealId = 123;
+
+        when(iojAppealService.find(legacyAppealId)).thenReturn(Optional.empty());
+        when(iojAppealService.hasBeenRolledBack(legacyAppealId)).thenReturn(false);
+        when(migrationProperties.legacyReadFallbackEnabled()).thenReturn(false);
+
+        assertThatThrownBy(() -> service.findOrThrow(legacyAppealId))
+                .isInstanceOf(RequestedObjectNotFoundException.class)
+                .hasMessage("IOJ appeal not found for legacyAppealId: " + legacyAppealId);
+
+        verify(iojAppealService).find(legacyAppealId);
+        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
+        verify(migrationProperties).legacyReadFallbackEnabled();
+        verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, false);
+        verifyNoMoreInteractions(iojAppealService, iojAuditRecorder, migrationProperties);
+        verifyNoInteractions(legacyIojAppealService);
     }
 
     @Test
@@ -110,7 +179,6 @@ class IojAppealOrchestrationServiceTest {
 
         verify(iojAppealService).find(legacyAppealId);
         verify(iojAuditRecorder).recordFindByLegacyId(legacyAppealId, localFound);
-        verify(iojAppealService).hasBeenRolledBack(legacyAppealId);
         verifyNoInteractions(legacyIojAppealService);
         verifyNoMoreInteractions(iojAuditRecorder, iojAppealService);
     }

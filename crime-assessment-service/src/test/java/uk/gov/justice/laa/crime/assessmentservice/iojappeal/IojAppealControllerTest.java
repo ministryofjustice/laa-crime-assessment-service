@@ -19,7 +19,6 @@ import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.hamcrest.Matchers;
@@ -68,13 +67,13 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        when(iojAppealOrchestrationService.find(appealId))
-                .thenReturn(Optional.of(new ApiGetIojAppealResponse().withAppealId(appealId.toString())));
+        when(iojAppealOrchestrationService.findOrThrow(appealId))
+                .thenReturn(new ApiGetIojAppealResponse().withAppealId(appealId.toString()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
                 .andExpect(status().isOk());
 
-        verify(iojAppealOrchestrationService).find(appealId);
+        verify(iojAppealOrchestrationService).findOrThrow(appealId);
     }
 
     @Test
@@ -89,13 +88,13 @@ class IojAppealControllerTest {
     void givenValidRequest_whenFindLegacyAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         int legacyAppealId = 1;
 
-        when(iojAppealOrchestrationService.find(legacyAppealId))
-                .thenReturn(Optional.ofNullable(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId)));
+        when(iojAppealOrchestrationService.findOrThrow(legacyAppealId))
+                .thenReturn(new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
                 .andExpect(status().isOk());
 
-        verify(iojAppealOrchestrationService).find(legacyAppealId);
+        verify(iojAppealOrchestrationService).findOrThrow(legacyAppealId);
     }
 
     @Test
