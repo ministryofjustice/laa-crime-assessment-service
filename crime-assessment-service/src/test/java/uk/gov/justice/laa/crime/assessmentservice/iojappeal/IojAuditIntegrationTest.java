@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -275,7 +276,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is(555));
+                .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
 

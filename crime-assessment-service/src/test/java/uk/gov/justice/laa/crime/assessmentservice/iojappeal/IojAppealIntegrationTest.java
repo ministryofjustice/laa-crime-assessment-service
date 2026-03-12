@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -377,7 +378,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is(555))
+                .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
                 .andReturn();
 
