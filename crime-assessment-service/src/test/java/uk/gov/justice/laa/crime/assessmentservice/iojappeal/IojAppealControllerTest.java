@@ -6,9 +6,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
 
+import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ProblemDetailError;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
+import uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
@@ -26,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -117,23 +121,47 @@ class IojAppealControllerTest {
     }
 
     @Test
-    void givenInvalidRequest_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
+    void givenBeanValidationFailure_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
         var request = new ApiCreateIojAppealRequest();
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
+
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value("Validation Failure"))
+                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
                 .andExpect(jsonPath("$.instance").value("/api/internal/v1/ioj-appeals"))
                 .andExpect(jsonPath("$.errors").exists())
-                .andExpect(jsonPath("$.errors.code").value("VALIDATION_FAILURE"))
+                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
                 .andExpect(jsonPath("$.errors.errors").isArray())
-                .andExpect(jsonPath("$.errors.errors.size()").value(10))
-                .andExpect(jsonPath("$.errors.errors[0].message", Matchers.containsString(" is missing.")));
+                .andExpect(jsonPath("$.errors.errors.length()").value(Matchers.greaterThan(0)));
+
+        verifyNoInteractions(iojAppealOrchestrationService);
+    }
+
+    @Test
+    void givenCustomValidationFailure_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
+        var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
+        request.getIojAppealMetadata().setLegacyApplicationId(null);
+
+        mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
+                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
+                .andExpect(jsonPath("$.errors.errors").isArray())
+                .andExpect(jsonPath(
+                        "$.errors.errors[?(@.field == '%s')].message"
+                                .formatted(ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID.getName()),
+                        Matchers.hasItem(String.format(
+                                ERROR_FIELD_IS_MISSING,
+                                ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID.getName()))));
 
         verifyNoInteractions(iojAppealOrchestrationService);
     }
