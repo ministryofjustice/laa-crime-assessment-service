@@ -17,5 +17,5 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 public abstract class WiremockIntegrationTest {
 
     @InjectWireMock
-    protected static WireMockServer wiremock;
+    protected WireMockServer wiremock;
 }
