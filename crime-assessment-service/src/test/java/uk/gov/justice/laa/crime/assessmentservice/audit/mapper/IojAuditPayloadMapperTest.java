@@ -205,7 +205,7 @@ class IojAuditPayloadMapperTest {
 
     @Test
     void givenRequest_whenMapRollbackDetails_thenAllFieldsAreMapped() {
-        String appealId = UUID.randomUUID().toString();
+        UUID appealId = UUID.randomUUID();
 
         Map<String, Object> details = IojAuditPayloadMapper.mapRollbackDetails(appealId, 12345);
 

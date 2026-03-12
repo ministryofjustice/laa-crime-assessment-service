@@ -1,16 +1,20 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.service.IojAppealOrchestrationService;
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
@@ -46,16 +50,18 @@ class IojAppealControllerTest {
     @MockitoBean
     private TraceIdHandler traceIdHandler;
 
+    private static final int TEST_ID = 123;
     private static final String IOJ_APPEALS_ENDPOINT = "/api/internal/v1/ioj-appeals";
     private static final String FIND_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/{id}";
     private static final String FIND_BY_LEGACY_ID_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/lookup-by-legacy-id/{id}";
-    private static final String ROLLBACK_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/rollback/{id}";
-    private static final int TEST_ID = 123;
+    private static final String ROLLBACK_ENDPOINT = IOJ_APPEALS_ENDPOINT + "/{id}/rollback";
 
     @Test
     void givenInvalidRequest_whenFindAppealIsInvoked_thenReturnsBadRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, "not-a-valid-id"))
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(iojAppealOrchestrationService);
     }
 
     @Test
@@ -67,12 +73,16 @@ class IojAppealControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT, appealId.toString()))
                 .andExpect(status().isOk());
+
+        verify(iojAppealOrchestrationService).find(appealId);
     }
 
     @Test
     void givenInvalidRequest_whenFindLegacyAppealIsInvoked_thenReturnsBadRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, "not-a-valid-id"))
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(iojAppealOrchestrationService);
     }
 
     @Test
@@ -84,10 +94,12 @@ class IojAppealControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(FIND_BY_LEGACY_ID_ENDPOINT, legacyAppealId))
                 .andExpect(status().isOk());
+
+        verify(iojAppealOrchestrationService).find(legacyAppealId);
     }
 
     @Test
-    void givenEndpoint_whenCreateEndpointCalledWithValidRequest_thenOkResponseWithIds() throws Exception {
+    void givenValidRequest_whenCreateIsInvoked_thenReturnsOkResponse() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         ApiCreateIojAppealResponse response = new ApiCreateIojAppealResponse()
                 .withAppealId(UUID.randomUUID().toString())
@@ -101,10 +113,12 @@ class IojAppealControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appealId").value(response.getAppealId()))
                 .andExpect(jsonPath("$.legacyAppealId").value(response.getLegacyAppealId()));
+
+        verify(iojAppealOrchestrationService).createIojAppeal(request);
     }
 
     @Test
-    void givenInvalidRequest_whenCreateEndpointCalled_thenBadRequestWithErrorList() throws Exception {
+    void givenInvalidRequest_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
         var request = new ApiCreateIojAppealRequest();
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
@@ -121,70 +135,80 @@ class IojAppealControllerTest {
                 .andExpect(jsonPath("$.errors.errors").isArray())
                 .andExpect(jsonPath("$.errors.errors.size()").value(10))
                 .andExpect(jsonPath("$.errors.errors[0].message", Matchers.containsString(" is missing.")));
+
+        verifyNoInteractions(iojAppealOrchestrationService);
     }
 
     @Test
-    void givenIncorrectMethod_whenCreateByIdEndpointCalled_thenError() throws Exception {
+    void givenUnsupportedMethod_whenFindEndpointInvoked_thenReturnsMethodNotAllowed() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.put(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
         mockMvc.perform(MockMvcRequestBuilders.delete(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
         mockMvc.perform(MockMvcRequestBuilders.patch(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(MockMvcRequestBuilders.put(FIND_ENDPOINT, TEST_ID)).andExpect(status().isMethodNotAllowed());
+
+        verifyNoInteractions(iojAppealOrchestrationService);
     }
 
     @Test
     void givenInvalidRequest_whenRollbackAppealIsInvoked_thenReturnsBadRequest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, "not-a-valid-id"))
+        mockMvc.perform(MockMvcRequestBuilders.post(ROLLBACK_ENDPOINT, "not-a-valid-id"))
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(iojAppealOrchestrationService);
     }
 
     @Test
     void givenUnknownIojAppeal_whenRollbackAppealIsInvoked_thenReturnsNotFound() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        when(iojAppealOrchestrationService.find(appealId)).thenReturn(Optional.empty());
+        String exceptionMessage = "IOJ appeal not found for appealId: " + appealId;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+        doThrow(new RequestedObjectNotFoundException(exceptionMessage))
+                .when(iojAppealOrchestrationService)
+                .rollbackIojAppeal(appealId);
+
+        mockMvc.perform(MockMvcRequestBuilders.post(ROLLBACK_ENDPOINT, appealId.toString()))
                 .andExpect(status().isNotFound());
+
+        verify(iojAppealOrchestrationService).rollbackIojAppeal(appealId);
     }
 
     @Test
     void givenUnsuccessfulRollback_whenRollbackAppealIsInvoked_thenReturnsErrorResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        ApiGetIojAppealResponse iojAppealResponse =
-                new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
-
-        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
+        ApiRollbackIojAppealResponse rollbackResponse = new ApiRollbackIojAppealResponse()
                 .withAppealId(appealId.toString())
-                .withLegacyAppealId(TEST_ID);
+                .withLegacyAppealId(TEST_ID)
+                .withRollbackSuccessful(false);
 
-        when(iojAppealOrchestrationService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
-        when(iojAppealOrchestrationService.rollbackIojAppeal(request)).thenReturn(false);
+        when(iojAppealOrchestrationService.rollbackIojAppeal(appealId)).thenReturn(rollbackResponse);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+        mockMvc.perform(MockMvcRequestBuilders.post(ROLLBACK_ENDPOINT, appealId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appealId").value(appealId.toString()))
                 .andExpect(jsonPath("$.legacyAppealId").value(TEST_ID))
                 .andExpect(jsonPath("$.rollbackSuccessful").value(false));
+
+        verify(iojAppealOrchestrationService).rollbackIojAppeal(appealId);
     }
 
     @Test
     void givenValidRequest_whenRollbackAppealIsInvoked_thenReturnsOkResponse() throws Exception {
         UUID appealId = UUID.randomUUID();
 
-        ApiGetIojAppealResponse iojAppealResponse =
-                new ApiGetIojAppealResponse().withAppealId(appealId.toString()).withLegacyAppealId(TEST_ID);
-
-        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
+        ApiRollbackIojAppealResponse rollbackResponse = new ApiRollbackIojAppealResponse()
                 .withAppealId(appealId.toString())
-                .withLegacyAppealId(TEST_ID);
+                .withLegacyAppealId(TEST_ID)
+                .withRollbackSuccessful(true);
 
-        when(iojAppealOrchestrationService.find(appealId)).thenReturn(Optional.of(iojAppealResponse));
-        when(iojAppealOrchestrationService.rollbackIojAppeal(request)).thenReturn(true);
+        when(iojAppealOrchestrationService.rollbackIojAppeal(appealId)).thenReturn(rollbackResponse);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(ROLLBACK_ENDPOINT, appealId.toString()))
+        mockMvc.perform(MockMvcRequestBuilders.post(ROLLBACK_ENDPOINT, appealId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appealId").value(appealId.toString()))
                 .andExpect(jsonPath("$.legacyAppealId").value(TEST_ID))
                 .andExpect(jsonPath("$.rollbackSuccessful").value(true));
+
+        verify(iojAppealOrchestrationService).rollbackIojAppeal(appealId);
     }
 }

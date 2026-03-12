@@ -243,7 +243,7 @@ class IojAuditRecorderTest {
 
     @Test
     void givenRollbackRequest_whenRecordRollbackSuccess_thenDualWriteSuccessPayloadAndIdentifiersAreRecorded() {
-        String appealId = UUID.randomUUID().toString();
+        UUID appealId = UUID.randomUUID();
         int legacyAppealId = 123;
 
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
@@ -258,7 +258,7 @@ class IojAuditRecorderTest {
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
-                .isEqualTo(appealId);
+                .isEqualTo(appealId.toString());
 
         assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent()
@@ -276,7 +276,7 @@ class IojAuditRecorderTest {
 
     @Test
     void givenRollbackRequest_whenRecordRollbackFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
-        String appealId = UUID.randomUUID().toString();
+        UUID appealId = UUID.randomUUID();
         int legacyAppealId = 123;
 
         Exception e = new RuntimeException("example error");

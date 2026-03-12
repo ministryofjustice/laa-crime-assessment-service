@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -91,17 +92,39 @@ public class IojAppealOrchestrationService {
     }
 
     @Transactional
-    public boolean rollbackIojAppeal(ApiRollbackIojAppealRequest request) {
-        try {
-            legacyIojAppealService.rollback(request.getLegacyAppealId());
-            iojAuditRecorder.recordRollbackSuccess(request.getAppealId(), request.getLegacyAppealId());
-        } catch (Exception ex) {
-            // We can't rollback the rollback attempt, so just log the failure.
-            iojAuditRecorder.recordRollbackFailure(request.getAppealId(), request.getLegacyAppealId(), ex);
+    public ApiRollbackIojAppealResponse rollbackIojAppeal(UUID appealId) {
+        IojAppealEntity appeal = iojAppealService
+                .findEntity(appealId)
+                .orElseThrow(
+                        () -> new RequestedObjectNotFoundException("IOJ appeal not found for appealId: " + appealId));
 
-            return false;
+        if (appeal.isRolledBack()) {
+            return new ApiRollbackIojAppealResponse()
+                    .withAppealId(appeal.getAppealId().toString())
+                    .withLegacyAppealId(appeal.getLegacyAppealId())
+                    .withRollbackSuccessful(true);
         }
 
-        return true;
+        boolean rollbackSuccessful;
+
+        try {
+            legacyIojAppealService.rollback(appeal.getLegacyAppealId());
+            iojAppealService.markRolledBack(appeal);
+
+            iojAuditRecorder.recordRollbackSuccess(appeal.getAppealId(), appeal.getLegacyAppealId());
+
+            rollbackSuccessful = true;
+
+        } catch (Exception ex) {
+            // We can't rollback the rollback attempt, so just log the failure.
+            iojAuditRecorder.recordRollbackFailure(appealId, appeal.getLegacyAppealId(), ex);
+
+            rollbackSuccessful = false;
+        }
+
+        return new ApiRollbackIojAppealResponse()
+                .withAppealId(appeal.getAppealId().toString())
+                .withLegacyAppealId(appeal.getLegacyAppealId())
+                .withRollbackSuccessful(rollbackSuccessful);
     }
 }

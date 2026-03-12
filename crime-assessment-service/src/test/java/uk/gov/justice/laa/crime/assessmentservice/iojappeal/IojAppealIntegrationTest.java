@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +20,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.jayway.jsonpath.JsonPath;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import uk.gov.justice.laa.crime.assessmentservice.WiremockIntegrationTest;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
@@ -34,29 +57,6 @@ import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.jayway.jsonpath.JsonPath;
-
 @DirtiesContext
 @AutoConfigureMockMvc
 @AutoConfigureObservability
@@ -66,7 +66,7 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
     private static final String ENDPOINT_URL = "/api/internal/v1/ioj-appeals";
     private static final String ENDPOINT_URL_FIND = ENDPOINT_URL + "/" + TestConstants.APPEAL_ID;
     private static final String ENDPOINT_URL_FIND_LEGACY = ENDPOINT_URL + "/lookup-by-legacy-id";
-    private static final String ENDPOINT_URL_ROLLBACK = ENDPOINT_URL + "/rollback/";
+    private static final String ENDPOINT_URL_ROLLBACK = ENDPOINT_URL + "/{appealId}/rollback";
     private static final String MAAT_API_APPEAL_URL = "/api/internal/v2/assessment/ioj-appeals";
     private static final String MAAT_API_APPEAL_ROLLBACK_URL =
             MAAT_API_APPEAL_URL + "/rollback/" + TestConstants.LEGACY_APPEAL_ID;
@@ -240,7 +240,8 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
 
     @Test
     void givenAppealDoesNotExist_whenRollbackAppealIsInvoked_thenFailsWithNotFound() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.patch(ENDPOINT_URL_ROLLBACK).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_ROLLBACK, UUID.randomUUID())
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
     }
 
@@ -249,15 +250,56 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
         IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
         iojAppealEntity = setupEntity(iojAppealEntity);
 
-        mvc.perform(MockMvcRequestBuilders.patch(ENDPOINT_URL_ROLLBACK
-                                + iojAppealEntity.getAppealId().toString())
+        wiremock.stubFor(patch(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL))
+                .willReturn(WireMock.ok()));
+
+        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_ROLLBACK, iojAppealEntity.getAppealId())
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.appealId").value(iojAppealEntity.getAppealId().toString()))
+                .andExpect(jsonPath("$.legacyAppealId").value(iojAppealEntity.getLegacyAppealId()))
+                .andExpect(jsonPath("$.rollbackSuccessful").value(true));
+
+        assertThat(iojAppealRepository.findByAppealId(iojAppealEntity.getAppealId()))
+                .isPresent()
+                .get()
+                .extracting(IojAppealEntity::getRolledBackAt)
+                .isNotNull();
 
         verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
 
         Mockito.verify(iojAuditRecorder)
-                .recordRollbackSuccess(iojAppealEntity.getAppealId().toString(), iojAppealEntity.getLegacyAppealId());
+                .recordRollbackSuccess(iojAppealEntity.getAppealId(), iojAppealEntity.getLegacyAppealId());
+    }
+
+    @Test
+    void givenMaatRollbackFails_whenRollbackAppealIsInvoked_thenReturnsFailure() throws Exception {
+        IojAppealEntity iojAppealEntity = TestDataBuilder.buildIojAppealEntity();
+        iojAppealEntity = setupEntity(iojAppealEntity);
+
+        wiremock.stubFor(patch(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL))
+                .willReturn(WireMock.serverError()));
+
+        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL + "/" +iojAppealEntity.getAppealId().toString() + ENDPOINT_URL_ROLLBACK)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.appealId").value(iojAppealEntity.getAppealId().toString()))
+                .andExpect(jsonPath("$.legacyAppealId").value(iojAppealEntity.getLegacyAppealId()))
+                .andExpect(jsonPath("$.rollbackSuccessful").value(false));
+
+        // DB update has been rolled back, so rolledBackAt should still be null
+        assertThat(iojAppealRepository.findByAppealId(iojAppealEntity.getAppealId()))
+                .isPresent()
+                .get()
+                .extracting(IojAppealEntity::getRolledBackAt)
+                .isNull();
+
+        verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
+
+        Mockito.verify(iojAuditRecorder)
+                .recordRollbackFailure(eq(iojAppealEntity.getAppealId()), eq(iojAppealEntity.getLegacyAppealId()), any(WebClientResponseException.class));
     }
 
     @Test
@@ -283,8 +325,9 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
         Integer legacyAppealId = JsonPath.read(result.getResponse().getContentAsString(), "$.legacyAppealId");
 
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount + 1);
-        assertThat(iojAppealRepository.findIojAppealByAppealId(appealId))
-                .isNotNull()
+        assertThat(iojAppealRepository.findByAppealId(appealId))
+                .isPresent()
+                .get()
                 .hasFieldOrPropertyWithValue("legacyAppealId", legacyAppealId);
 
         Mockito.verify(iojAuditRecorder)
@@ -332,8 +375,10 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
                 .andReturn();
 
-        verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount);
+
+        verify(patchRequestedFor(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)));
+
         Mockito.verify(iojAuditRecorder)
                 .recordCreateFailure(
                         any(UUID.class),

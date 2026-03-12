@@ -20,7 +20,7 @@ import uk.gov.justice.laa.crime.assessmentservice.utils.TestConstants;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
-import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealRequest;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -92,7 +92,6 @@ class IojAppealOrchestrationServiceTest {
 
     @MethodSource("localResultCases")
     @ParameterizedTest(name = "givenLocal{0}_whenFindByLegacyId_thenAudits{0}_andDoesNotCallLegacy")
-    @MethodSource("localResultCases")
     void givenLocalResult_whenFindByLegacyId_thenAuditsResult_andDoesNotCallLegacy(
             boolean localFound, ApiGetIojAppealResponse localResponse, ApiGetIojAppealResponse expectedResult) {
 
@@ -264,32 +263,37 @@ class IojAppealOrchestrationServiceTest {
 
     @Test
     void givenHappyPath_whenRollbackIojAppeal_thenSetsLegacyIdSavesAuditsSuccessAndReturnsResponse() {
-        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
-                .withAppealId(UUID.randomUUID().toString())
-                .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
+        UUID appealId = UUID.randomUUID();
 
-        boolean rollbackSuccessful = service.rollbackIojAppeal(request);
+        when(iojAppealService.findEntity(appealId))
+                .thenReturn(Optional.of(IojAppealEntity.builder()
+                        .appealId(appealId)
+                        .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
+                        .build()));
 
-        verify(iojAuditRecorder).recordRollbackSuccess(request.getAppealId(), request.getLegacyAppealId());
+        ApiRollbackIojAppealResponse result = service.rollbackIojAppeal(appealId);
 
-        assertThat(rollbackSuccessful).isTrue();
+        assertThat(result.getRollbackSuccessful()).isTrue();
+        verify(iojAuditRecorder).recordRollbackSuccess(any(UUID.class), anyInt());
     }
 
     @Test
     void givenExceptionDuringLegacyRollback_whenRollbackIojAppeal_thenIojAppealIsNotRolledBack() {
-        ApiRollbackIojAppealRequest request = new ApiRollbackIojAppealRequest()
-                .withAppealId(UUID.randomUUID().toString())
-                .withLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
+        UUID appealId = UUID.randomUUID();
 
         Exception expectedException = new RuntimeException("Error during rollback");
 
+        when(iojAppealService.findEntity(appealId))
+                .thenReturn(Optional.of(IojAppealEntity.builder()
+                        .appealId(appealId)
+                        .legacyAppealId(TestConstants.LEGACY_APPEAL_ID)
+                        .build()));
+
         doThrow(expectedException).when(legacyIojAppealService).rollback(TestConstants.LEGACY_APPEAL_ID);
 
-        boolean rollbackSuccessful = service.rollbackIojAppeal(request);
+        ApiRollbackIojAppealResponse result = service.rollbackIojAppeal(appealId);
 
-        verify(iojAuditRecorder)
-                .recordRollbackFailure(request.getAppealId(), request.getLegacyAppealId(), expectedException);
-
-        assertThat(rollbackSuccessful).isFalse();
+        assertThat(result.getRollbackSuccessful()).isFalse();
+        verify(iojAuditRecorder).recordRollbackFailure(appealId, TestConstants.LEGACY_APPEAL_ID, expectedException);
     }
 }
