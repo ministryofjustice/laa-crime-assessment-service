@@ -1,6 +1,7 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
@@ -43,7 +44,7 @@ public class IojAppealController implements IojAppealApi {
     }
 
     @PostMapping
-    public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
+    public ResponseEntity<ApiCreateIojAppealResponse> create(@Valid @RequestBody ApiCreateIojAppealRequest request) {
         List<ErrorMessage> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
