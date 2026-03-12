@@ -38,7 +38,6 @@ public class ApiCreateIojAppealRequestValidator {
     public static final String ERROR_FIELD_IS_MISSING = "%s is missing.";
     public static final String ERROR_INCORRECT_COMBINATION = "Incorrect Combination of Assessor and Reason.";
     public static final String ERROR_APPEAL_REASON_IS_INVALID = "Appeal Reason is invalid.";
-
     public static final String APPEAL_REASON_HARDIOJ = "HARDIOJ";
 
     public List<ErrorMessage> validateRequest(ApiCreateIojAppealRequest request) {
