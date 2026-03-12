@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -71,4 +72,11 @@ public class IojAppealEntity {
     @Builder.Default
     @Column(name = "created_at")
     private LocalDateTime createdDate = LocalDateTime.now();
+
+    @Column(name = "rolled_back_at")
+    private Instant rolledBackAt;
+
+    public boolean isRolledBack() {
+        return rolledBackAt != null;
+    }
 }

@@ -8,6 +8,7 @@ import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppeal
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,14 +22,22 @@ public class IojAppealService {
     private final IojAppealMapper iojAppealMapper;
     private final IojAppealRepository iojAppealRepository;
 
+    public Optional<IojAppealEntity> findEntity(UUID appealId) {
+        return iojAppealRepository.findByAppealId(appealId);
+    }
+
     public Optional<ApiGetIojAppealResponse> find(UUID appealId) {
-        return Optional.ofNullable(iojAppealRepository.findIojAppealByAppealId(appealId))
-                .map(iojAppealMapper::mapEntityToDTO);
+        return iojAppealRepository.findByAppealIdAndRolledBackAtIsNull(appealId).map(iojAppealMapper::mapEntityToDTO);
     }
 
     public Optional<ApiGetIojAppealResponse> find(int legacyAppealId) {
-        return Optional.ofNullable(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId))
+        return iojAppealRepository
+                .findByLegacyAppealIdAndRolledBackAtIsNull(legacyAppealId)
                 .map(iojAppealMapper::mapEntityToDTO);
+    }
+
+    public boolean hasBeenRolledBack(int legacyAppealId) {
+        return iojAppealRepository.existsByLegacyAppealIdAndRolledBackAtIsNotNull(legacyAppealId);
     }
 
     public IojAppealEntity create(ApiCreateIojAppealRequest request) {
@@ -43,5 +52,10 @@ public class IojAppealService {
 
     public void delete(IojAppealEntity iojAppealEntity) {
         iojAppealRepository.delete(iojAppealEntity);
+    }
+
+    public void markRolledBack(IojAppealEntity entity) {
+        entity.setRolledBackAt(Instant.now());
+        iojAppealRepository.save(entity);
     }
 }
