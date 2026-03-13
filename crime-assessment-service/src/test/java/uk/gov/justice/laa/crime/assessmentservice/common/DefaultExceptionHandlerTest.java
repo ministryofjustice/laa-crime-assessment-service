@@ -66,10 +66,14 @@ class DefaultExceptionHandlerTest {
 
     @Test
     void givenParseableProblemDetail_whenHandleWebClientResponseException_thenReturnsParsedResponse() throws Exception {
+        List<ErrorMessage> expectedErrors = List.of(
+                new ErrorMessage("field", "downstream validation failed"));
+
         ErrorExtension extension = ProblemDetailUtil.buildErrorExtension(
                 ProblemDetailError.APPLICATION_ERROR.code(),
                 TRACE_ID,
-                List.of(new ErrorMessage("field", "downstream validation failed")));
+                expectedErrors
+        );
 
         ProblemDetail downstreamProblemDetail =
                 ProblemDetailUtil.buildProblemDetail(HttpStatus.BAD_REQUEST, "Downstream detail", extension);
@@ -85,10 +89,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleWebClientResponseException(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo("Downstream detail");
-        assertErrorExtension(response.getBody(), ProblemDetailError.APPLICATION_ERROR.code(), 1);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                downstreamProblemDetail.getDetail(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                expectedErrors
+        );
     }
 
     @Test
@@ -102,10 +109,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleWebClientResponseException(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(exception.getMessage());
-        assertErrorExtension(response.getBody(), ProblemDetailError.APPLICATION_ERROR.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_GATEWAY,
+                exception.getMessage(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -115,10 +125,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleNotFound(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(exception.getMessage());
-        assertErrorExtension(response.getBody(), ProblemDetailError.OBJECT_NOT_FOUND.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                ProblemDetailError.OBJECT_NOT_FOUND.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -127,10 +140,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleWebClientRequestException(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.APPLICATION_ERROR.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.APPLICATION_ERROR.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -142,39 +158,43 @@ class DefaultExceptionHandlerTest {
                 new FieldError("request", "iojAppealMetadata", "must not be null"),
                 new FieldError("request", "iojAppeal", "must not be null"));
 
+        List<ErrorMessage> expectedErrors = List.of(
+                new ErrorMessage("iojAppealMetadata", "must not be null"),
+                new ErrorMessage("iojAppeal", "must not be null")
+        );
+
         when(exception.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(fieldErrors);
         when(exception.getMessage()).thenReturn("Bean validation failed");
 
         ResponseEntity<ProblemDetail> response = handler.handleSchemaValidationFailure(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.VALIDATION_FAILURE.defaultDetail());
-
-        ErrorExtension errorsExtension = getErrorsExtension(response.getBody());
-        assertThat(errorsExtension.code()).isEqualTo(ProblemDetailError.VALIDATION_FAILURE.code());
-        assertThat(errorsExtension.traceId()).isEqualTo(TRACE_ID);
-
-        assertThat(errorsExtension.errors()).hasSize(2);
-
-        ErrorMessage firstError = errorsExtension.errors().getFirst();
-        assertThat(firstError.field()).isEqualTo("iojAppealMetadata");
-        assertThat(firstError.message()).isEqualTo("must not be null");
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
+                ProblemDetailError.VALIDATION_FAILURE.code(),
+                expectedErrors
+        );
     }
 
     @Test
     void givenCrimeValidationException_whenHandleValidationFailure_thenReturns400WithErrors() {
-        CrimeValidationException exception = new CrimeValidationException(List.of(
+        List<ErrorMessage> expectedErrors = List.of(
                 new ErrorMessage("appealReason", "Appeal Reason is invalid."),
-                new ErrorMessage("appealAssessor", "Incorrect Combination of Assessor and Reason.")));
+                new ErrorMessage("appealAssessor", "Incorrect Combination of Assessor and Reason."));
+
+        CrimeValidationException exception = new CrimeValidationException(expectedErrors);
 
         ResponseEntity<ProblemDetail> response = handler.handleValidationFailure(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.VALIDATION_FAILURE.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.VALIDATION_FAILURE.code(), 2);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
+                ProblemDetailError.VALIDATION_FAILURE.code(),
+                expectedErrors
+        );
     }
 
     @Test
@@ -183,10 +203,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleDataIntegrityViolation(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.DB_ERROR.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.DB_ERROR.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                ProblemDetailError.DB_ERROR.defaultDetail(),
+                ProblemDetailError.DB_ERROR.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -195,10 +218,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleRollbackFailure(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo("Rollback failed");
-        assertErrorExtension(response.getBody(), ProblemDetailError.APPLICATION_ERROR.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Rollback failed",
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -207,10 +233,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleUnhandled(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.APPLICATION_ERROR.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.APPLICATION_ERROR.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -219,10 +248,10 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleUnhandled(new RuntimeException("Unexpected"));
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
-        ErrorExtension errorsExtension = getErrorsExtension(response.getBody());
+        ErrorExtension errorsExtension = getErrorExtension(response.getBody());
         assertThat(errorsExtension.traceId()).isEmpty();
     }
 
@@ -233,10 +262,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleBadRequest(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.BAD_REQUEST.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.BAD_REQUEST.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                ProblemDetailError.BAD_REQUEST.defaultDetail(),
+                ProblemDetailError.BAD_REQUEST.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -246,10 +278,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleBadRequest(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.BAD_REQUEST.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.BAD_REQUEST.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.BAD_REQUEST,
+                ProblemDetailError.BAD_REQUEST.defaultDetail(),
+                ProblemDetailError.BAD_REQUEST.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -258,10 +293,13 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleMethodNotSupported(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.METHOD_NOT_ALLOWED.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.METHOD_NOT_ALLOWED.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.METHOD_NOT_ALLOWED,
+                ProblemDetailError.METHOD_NOT_ALLOWED.defaultDetail(),
+                ProblemDetailError.METHOD_NOT_ALLOWED.code(),
+                List.of()
+        );
     }
 
     @Test
@@ -270,22 +308,36 @@ class DefaultExceptionHandlerTest {
 
         ResponseEntity<ProblemDetail> response = handler.handleUnsupportedMediaType(exception);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetail()).isEqualTo(ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.defaultDetail());
-        assertErrorExtension(response.getBody(), ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.code(), 0);
+        assertProblemDetail(
+                response,
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.defaultDetail(),
+                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.code(),
+                List.of()
+        );
     }
 
-    private void assertErrorExtension(ProblemDetail problemDetail, String expectedCode, int expectedErrorCount) {
+    private void assertProblemDetail(
+            ResponseEntity<ProblemDetail> response,
+            HttpStatus expectedStatus,
+            String expectedDetail,
+            String expectedCode,
+            List<ErrorMessage> expectedErrors) {
 
-        ErrorExtension errorsExtension = getErrorsExtension(problemDetail);
+        ProblemDetail body = response.getBody();
 
-        assertThat(errorsExtension.code()).isEqualTo(expectedCode);
-        assertThat(errorsExtension.traceId()).isEqualTo(TRACE_ID);
-        assertThat(errorsExtension.errors()).hasSize(expectedErrorCount);
-    }
+        assertThat(body).isNotNull();
+        assertThat(body.getDetail()).isEqualTo(expectedDetail);
+        assertThat(response.getStatusCode()).isEqualTo(expectedStatus);
 
-    private ErrorExtension getErrorsExtension(ProblemDetail problemDetail) {
+        ErrorExtension errorExtension = getErrorExtension(body);
+
+        assertThat(errorExtension.traceId()).isEqualTo(TRACE_ID);
+        assertThat(errorExtension.code()).isEqualTo(expectedCode);
+        assertThat(errorExtension.errors()).containsExactlyInAnyOrderElementsOf(expectedErrors);
+        }
+
+    private ErrorExtension getErrorExtension(ProblemDetail problemDetail) {
         Optional<ErrorExtension> errorExtension = ProblemDetailUtil.getErrorExtension(problemDetail);
         assertThat(errorExtension).isPresent();
         return errorExtension.get();
