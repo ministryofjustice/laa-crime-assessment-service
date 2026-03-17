@@ -5,7 +5,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ProblemDetailError;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.DefaultExceptionHandler;
@@ -66,14 +66,10 @@ class DefaultExceptionHandlerTest {
 
     @Test
     void givenParseableProblemDetail_whenHandleWebClientResponseException_thenReturnsParsedResponse() throws Exception {
-        List<ErrorMessage> expectedErrors = List.of(
-                new ErrorMessage("field", "downstream validation failed"));
+        List<ErrorMessage> expectedErrors = List.of(new ErrorMessage("field", "downstream validation failed"));
 
-        ErrorExtension extension = ProblemDetailUtil.buildErrorExtension(
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                TRACE_ID,
-                expectedErrors
-        );
+        ErrorExtension extension =
+                ProblemDetailUtil.buildErrorExtension(ApiError.APPLICATION_ERROR.code(), TRACE_ID, expectedErrors);
 
         ProblemDetail downstreamProblemDetail =
                 ProblemDetailUtil.buildProblemDetail(HttpStatus.BAD_REQUEST, "Downstream detail", extension);
@@ -93,9 +89,8 @@ class DefaultExceptionHandlerTest {
                 response,
                 HttpStatus.BAD_REQUEST,
                 downstreamProblemDetail.getDetail(),
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                expectedErrors
-        );
+                ApiError.APPLICATION_ERROR.code(),
+                expectedErrors);
     }
 
     @Test
@@ -110,12 +105,7 @@ class DefaultExceptionHandlerTest {
         ResponseEntity<ProblemDetail> response = handler.handleWebClientResponseException(exception);
 
         assertProblemDetail(
-                response,
-                HttpStatus.BAD_GATEWAY,
-                exception.getMessage(),
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                List.of()
-        );
+                response, HttpStatus.BAD_GATEWAY, exception.getMessage(), ApiError.APPLICATION_ERROR.code(), List.of());
     }
 
     @Test
@@ -126,12 +116,7 @@ class DefaultExceptionHandlerTest {
         ResponseEntity<ProblemDetail> response = handler.handleNotFound(exception);
 
         assertProblemDetail(
-                response,
-                HttpStatus.NOT_FOUND,
-                exception.getMessage(),
-                ProblemDetailError.OBJECT_NOT_FOUND.code(),
-                List.of()
-        );
+                response, HttpStatus.NOT_FOUND, exception.getMessage(), ApiError.OBJECT_NOT_FOUND.code(), List.of());
     }
 
     @Test
@@ -143,10 +128,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                List.of()
-        );
+                ApiError.APPLICATION_ERROR.defaultDetail(),
+                ApiError.APPLICATION_ERROR.code(),
+                List.of());
     }
 
     @Test
@@ -160,8 +144,7 @@ class DefaultExceptionHandlerTest {
 
         List<ErrorMessage> expectedErrors = List.of(
                 new ErrorMessage("iojAppealMetadata", "must not be null"),
-                new ErrorMessage("iojAppeal", "must not be null")
-        );
+                new ErrorMessage("iojAppeal", "must not be null"));
 
         when(exception.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(fieldErrors);
@@ -172,10 +155,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
-                ProblemDetailError.VALIDATION_FAILURE.code(),
-                expectedErrors
-        );
+                ApiError.VALIDATION_FAILURE.defaultDetail(),
+                ApiError.VALIDATION_FAILURE.code(),
+                expectedErrors);
     }
 
     @Test
@@ -191,10 +173,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
-                ProblemDetailError.VALIDATION_FAILURE.code(),
-                expectedErrors
-        );
+                ApiError.VALIDATION_FAILURE.defaultDetail(),
+                ApiError.VALIDATION_FAILURE.code(),
+                expectedErrors);
     }
 
     @Test
@@ -206,10 +187,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ProblemDetailError.DB_ERROR.defaultDetail(),
-                ProblemDetailError.DB_ERROR.code(),
-                List.of()
-        );
+                ApiError.DB_ERROR.defaultDetail(),
+                ApiError.DB_ERROR.code(),
+                List.of());
     }
 
     @Test
@@ -222,9 +202,8 @@ class DefaultExceptionHandlerTest {
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Rollback failed",
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                List.of()
-        );
+                ApiError.APPLICATION_ERROR.code(),
+                List.of());
     }
 
     @Test
@@ -236,10 +215,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
-                ProblemDetailError.APPLICATION_ERROR.code(),
-                List.of()
-        );
+                ApiError.APPLICATION_ERROR.defaultDetail(),
+                ApiError.APPLICATION_ERROR.code(),
+                List.of());
     }
 
     @Test
@@ -265,10 +243,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ProblemDetailError.BAD_REQUEST.defaultDetail(),
-                ProblemDetailError.BAD_REQUEST.code(),
-                List.of()
-        );
+                ApiError.BAD_REQUEST.defaultDetail(),
+                ApiError.BAD_REQUEST.code(),
+                List.of());
     }
 
     @Test
@@ -281,10 +258,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ProblemDetailError.BAD_REQUEST.defaultDetail(),
-                ProblemDetailError.BAD_REQUEST.code(),
-                List.of()
-        );
+                ApiError.BAD_REQUEST.defaultDetail(),
+                ApiError.BAD_REQUEST.code(),
+                List.of());
     }
 
     @Test
@@ -296,10 +272,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.METHOD_NOT_ALLOWED,
-                ProblemDetailError.METHOD_NOT_ALLOWED.defaultDetail(),
-                ProblemDetailError.METHOD_NOT_ALLOWED.code(),
-                List.of()
-        );
+                ApiError.METHOD_NOT_ALLOWED.defaultDetail(),
+                ApiError.METHOD_NOT_ALLOWED.code(),
+                List.of());
     }
 
     @Test
@@ -311,10 +286,9 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.defaultDetail(),
-                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.code(),
-                List.of()
-        );
+                ApiError.UNSUPPORTED_MEDIA_TYPE.defaultDetail(),
+                ApiError.UNSUPPORTED_MEDIA_TYPE.code(),
+                List.of());
     }
 
     private void assertProblemDetail(
@@ -335,7 +309,7 @@ class DefaultExceptionHandlerTest {
         assertThat(errorExtension.traceId()).isEqualTo(TRACE_ID);
         assertThat(errorExtension.code()).isEqualTo(expectedCode);
         assertThat(errorExtension.errors()).containsExactlyInAnyOrderElementsOf(expectedErrors);
-        }
+    }
 
     private ErrorExtension getErrorExtension(ProblemDetail problemDetail) {
         Optional<ErrorExtension> errorExtension = ProblemDetailUtil.getErrorExtension(problemDetail);

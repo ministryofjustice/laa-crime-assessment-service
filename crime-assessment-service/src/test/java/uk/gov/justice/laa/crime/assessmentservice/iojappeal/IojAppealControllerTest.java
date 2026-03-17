@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ProblemDetailError;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealController;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields;
@@ -132,10 +132,10 @@ class IojAppealControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
+                .andExpect(jsonPath("$.detail").value(ApiError.VALIDATION_FAILURE.defaultDetail()))
                 .andExpect(jsonPath("$.instance").value("/api/internal/v1/ioj-appeals"))
                 .andExpect(jsonPath("$.errors").exists())
-                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
+                .andExpect(jsonPath("$.errors.code").value(ApiError.VALIDATION_FAILURE.code()))
                 .andExpect(jsonPath("$.errors.errors").isArray())
                 .andExpect(jsonPath("$.errors.errors.length()").value(Matchers.greaterThan(0)));
 
@@ -153,8 +153,8 @@ class IojAppealControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
-                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
+                .andExpect(jsonPath("$.detail").value(ApiError.VALIDATION_FAILURE.defaultDetail()))
+                .andExpect(jsonPath("$.errors.code").value(ApiError.VALIDATION_FAILURE.code()))
                 .andExpect(jsonPath("$.errors.errors").isArray())
                 .andExpect(jsonPath(
                         "$.errors.errors[?(@.field == '%s')].message"
