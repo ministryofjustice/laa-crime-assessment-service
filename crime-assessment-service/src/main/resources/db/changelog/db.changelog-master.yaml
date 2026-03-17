@@ -25,3 +25,7 @@ databaseChangeLog:
       file: db/changelog/changeset/12-alter_ioj_appeal_event-table-postgres.sql
   - include:
       file: db/changelog/changeset/12-alter_ioj_appeal_event-table-h2.sql
+  - include:
+      file: db/changelog/changeset/13_add_rolled_back_at_column_to_ioj_appeal_table.sql
+  - include:
+      file: db/changelog/changeset/14_fix_is_passed_seed_data.sql
