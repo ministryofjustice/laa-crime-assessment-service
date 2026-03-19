@@ -119,7 +119,7 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.assessmentDecision")
                         .value(response.getAssessmentDecision().getCode()))
                 .andExpect(jsonPath("$.decisionReason")
-                        .value(response.getDecisionReason().toString()))
+                        .value(response.getDecisionReason().getConfirmation()))
                 .andExpect(jsonPath("$.notes").value(response.getNotes()));
     }
 
