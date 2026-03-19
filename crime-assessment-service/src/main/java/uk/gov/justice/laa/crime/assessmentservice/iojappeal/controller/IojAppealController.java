@@ -1,6 +1,7 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
@@ -9,10 +10,10 @@ import uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateI
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.error.ErrorMessage;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -34,29 +35,25 @@ public class IojAppealController implements IojAppealApi {
 
     @GetMapping(path = "/{appealId}")
     public ResponseEntity<ApiGetIojAppealResponse> find(@PathVariable UUID appealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(appealId);
-
-        return response.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(iojAppealOrchestrationService.findOrThrow(appealId));
     }
 
     @GetMapping(path = "/lookup-by-legacy-id/{legacyAppealId}")
     public ResponseEntity<ApiGetIojAppealResponse> findByLegacyId(@PathVariable int legacyAppealId) {
-        Optional<ApiGetIojAppealResponse> response = iojAppealOrchestrationService.find(legacyAppealId);
-
-        return response.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(iojAppealOrchestrationService.findOrThrow(legacyAppealId));
     }
 
     @PostMapping
-    public ResponseEntity<ApiCreateIojAppealResponse> create(@RequestBody ApiCreateIojAppealRequest request) {
+    public ResponseEntity<ApiCreateIojAppealResponse> create(@Valid @RequestBody ApiCreateIojAppealRequest request) {
         List<ErrorMessage> validationErrors = ApiCreateIojAppealRequestValidator.validateRequest(request);
         if (!validationErrors.isEmpty()) {
             throw new CrimeValidationException(validationErrors);
         }
+        return ResponseEntity.ok(iojAppealOrchestrationService.createIojAppeal(request));
+    }
 
-        ApiCreateIojAppealResponse iojAppeal = iojAppealOrchestrationService.createIojAppeal(request);
-
-        return ResponseEntity.ok(iojAppeal);
+    @PostMapping(path = "/{appealId}/rollback")
+    public ResponseEntity<ApiRollbackIojAppealResponse> rollback(@PathVariable UUID appealId) {
+        return ResponseEntity.ok(iojAppealOrchestrationService.rollbackIojAppeal(appealId));
     }
 }

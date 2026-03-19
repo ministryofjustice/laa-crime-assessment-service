@@ -1,18 +1,15 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_SUCCESSFUL;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPLICATION_RECEIVED_DATE;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.SESSION_ID;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.USERNAME;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_APPEAL_REASON_IS_INVALID;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_INCORRECT_COMBINATION;
 
 import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
-import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
-import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 import uk.gov.justice.laa.crime.error.ErrorMessage;
@@ -25,44 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class ApiCreateIojAppealRequestValidatorTest {
-
-    // Null check validation.
-
-    @Test
-    void whenRequestEmpty_thenTwoErrors() {
-        List<ErrorMessage> returnedErrorList =
-                ApiCreateIojAppealRequestValidator.validateRequest(new ApiCreateIojAppealRequest());
-        assertThat(returnedErrorList).hasSize(2);
-        assertThat(returnedErrorList.stream()
-                        .map(ErrorMessage::message)
-                        .filter(x -> x.contains(" is missing."))
-                        .count())
-                .isEqualTo(2);
-    }
-
-    @Test
-    void whenAppealAndMetaPresentButNotPopulated_thenAllMissingFieldValidationErrorsReturned() {
-        ApiCreateIojAppealRequest request = new ApiCreateIojAppealRequest()
-                .withIojAppeal(new IojAppeal())
-                .withIojAppealMetadata(new IojAppealMetadata());
-
-        int expectedErrorCount = 10; // 6 field validations on appeal, 4 on metadata.
-        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
-
-        assertThat(returnedErrorList).hasSize(expectedErrorCount);
-        assertThat(returnedErrorList.stream()
-                        .map(ErrorMessage::message)
-                        .filter(x -> x.contains(" is missing."))
-                        .count())
-                .isEqualTo(expectedErrorCount);
-        assertThat(returnedErrorList.stream()
-                        .filter(x -> x.equals(getExpectedMissingErrorMessage(LEGACY_APPLICATION_ID.getName())))
-                        .count())
-                .isEqualTo(1);
-    }
 
     // Appeal Reason/Assessor Combination Tests
     private static Stream<Arguments> reasonAssessorCombinations() {
@@ -108,35 +69,41 @@ class ApiCreateIojAppealRequestValidatorTest {
     }
 
     @Test
-    void whenValidButNoAssessor_thenOnlyMissingErrors() {
+    void givenMissingLegacyApplicationId_whenValidateRequest_thenReturnsMissingFieldError() {
         ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
-        request.getIojAppeal().setAppealAssessor(null);
+        request.getIojAppealMetadata().setLegacyApplicationId(null);
 
         List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
 
         assertThat(returnedErrorList).hasSize(1);
-        assertThat(returnedErrorList.getFirst()).isEqualTo(getExpectedMissingErrorMessage(APPEAL_ASSESSOR.getName()));
+        assertThat(returnedErrorList.getFirst().field()).isEqualTo(LEGACY_APPLICATION_ID.getName());
+        assertThat(returnedErrorList.getFirst().message())
+                .isEqualTo(String.format(ERROR_FIELD_IS_MISSING, LEGACY_APPLICATION_ID.getName()));
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource // additional check to ensure validation works on empty strings and nulls
-    void whenValidButNoUserSessionDetails_thenOnlyMissingErrors(String emptyOrNull) {
+    @Test
+    void givenMissingApplicationReceivedDate_whenValidateRequest_thenReturnsMissingFieldError() {
         ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
-        request.getIojAppealMetadata().getUserSession().setUserName(emptyOrNull);
-        request.getIojAppealMetadata().getUserSession().setSessionId(emptyOrNull);
+        request.getIojAppealMetadata().setApplicationReceivedDate(null);
 
         List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
 
-        assertThat(returnedErrorList)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(
-                        getExpectedMissingErrorMessage(SESSION_ID.getName()),
-                        getExpectedMissingErrorMessage(USERNAME.getName()));
+        assertThat(returnedErrorList).hasSize(1);
+        assertThat(returnedErrorList.getFirst().field()).isEqualTo(APPLICATION_RECEIVED_DATE.getName());
+        assertThat(returnedErrorList.getFirst().message())
+                .isEqualTo(String.format(ERROR_FIELD_IS_MISSING, APPLICATION_RECEIVED_DATE.getName()));
     }
 
-    // helpers
+    @Test
+    void givenMissingAppealSuccessful_whenValidateRequest_thenReturnsMissingFieldError() {
+        ApiCreateIojAppealRequest request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
+        request.getIojAppeal().setAppealSuccessful(null);
 
-    private ErrorMessage getExpectedMissingErrorMessage(String fieldName) {
-        return new ErrorMessage(fieldName, String.format(ERROR_FIELD_IS_MISSING, fieldName));
+        List<ErrorMessage> returnedErrorList = ApiCreateIojAppealRequestValidator.validateRequest(request);
+
+        assertThat(returnedErrorList).hasSize(1);
+        assertThat(returnedErrorList.getFirst().field()).isEqualTo(APPEAL_SUCCESSFUL.getName());
+        assertThat(returnedErrorList.getFirst().message())
+                .isEqualTo(String.format(ERROR_FIELD_IS_MISSING, APPEAL_SUCCESSFUL.getName()));
     }
 }

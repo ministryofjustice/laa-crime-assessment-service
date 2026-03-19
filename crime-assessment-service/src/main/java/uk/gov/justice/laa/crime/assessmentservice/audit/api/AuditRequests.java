@@ -41,6 +41,15 @@ public final class AuditRequests {
                 .build();
     }
 
+    public static AuditEventRequest rollbackIoj(
+            UUID appealId, int legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
+        return base(AuditEventType.ROLLBACK, triggeredBy, traceId, payload)
+                .identifiers(List.of(
+                        new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString()),
+                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID, String.valueOf(legacyAppealId))))
+                .build();
+    }
+
     private static AuditEventRequest.AuditEventRequestBuilder base(
             AuditEventType eventType, String triggeredBy, String traceId, Map<String, Object> payload) {
 

@@ -12,9 +12,11 @@ import uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.IojAppeal
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,63 +35,37 @@ class IojAppealServiceTest {
     @InjectMocks
     private IojAppealService iojAppealService;
 
-    @Test
-    void givenAppealNotFound_whenFindIsInvoked_thenReturnsEmptyOptional() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
+    private UUID appealId;
 
-        when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(null);
-
-        Optional<ApiGetIojAppealResponse> iojAppeal = iojAppealService.find(appealId);
-
-        assertThat(iojAppeal).isEmpty();
-        verify(iojAppealRepository).findIojAppealByAppealId(appealId);
-        verifyNoMoreInteractions(iojAppealRepository);
-    }
-
-    @Test
-    void givenAppealIsFound_whenFind() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
-
-        IojAppealEntity iojAppealEntity =
-                IojAppealEntity.builder().appealId(appealId).build();
-
-        ApiGetIojAppealResponse iojAppealResponse = new ApiGetIojAppealResponse().withAppealId(appealId.toString());
-
-        when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(iojAppealEntity);
-        when(iojAppealMapper.mapEntityToDTO(iojAppealEntity)).thenReturn(iojAppealResponse);
-
-        Optional<ApiGetIojAppealResponse> iojAppeal = iojAppealService.find(appealId);
-
-        assertThat(iojAppeal).containsSame(iojAppealResponse);
+    @BeforeEach
+    void setup() {
+        appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
     }
 
     @Test
     void givenAppealNotFound_whenFindByAppealId_thenReturnsEmpty_andDoesNotMap() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
-        when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(null);
+        when(iojAppealRepository.findByAppealIdAndRolledBackAtIsNull(appealId)).thenReturn(Optional.empty());
 
         Optional<ApiGetIojAppealResponse> result = iojAppealService.find(appealId);
 
         assertThat(result).isEmpty();
-        verify(iojAppealRepository).findIojAppealByAppealId(appealId);
+        verify(iojAppealRepository).findByAppealIdAndRolledBackAtIsNull(appealId);
         verifyNoInteractions(iojAppealMapper);
         verifyNoMoreInteractions(iojAppealRepository);
     }
 
     @Test
     void givenAppealFound_whenFindByAppealId_thenMapsAndReturnsDto() {
-        UUID appealId = UUID.fromString("04a0d8a7-127a-44d0-bef1-d020e4ddc608");
-
         IojAppealEntity entity = IojAppealEntity.builder().appealId(appealId).build();
         ApiGetIojAppealResponse dto = new ApiGetIojAppealResponse().withAppealId(appealId.toString());
 
-        when(iojAppealRepository.findIojAppealByAppealId(appealId)).thenReturn(entity);
+        when(iojAppealRepository.findByAppealIdAndRolledBackAtIsNull(appealId)).thenReturn(Optional.of(entity));
         when(iojAppealMapper.mapEntityToDTO(entity)).thenReturn(dto);
 
         Optional<ApiGetIojAppealResponse> result = iojAppealService.find(appealId);
 
         assertThat(result).containsSame(dto);
-        verify(iojAppealRepository).findIojAppealByAppealId(appealId);
+        verify(iojAppealRepository).findByAppealIdAndRolledBackAtIsNull(appealId);
         verify(iojAppealMapper).mapEntityToDTO(entity);
         verifyNoMoreInteractions(iojAppealRepository, iojAppealMapper);
     }
@@ -97,12 +73,13 @@ class IojAppealServiceTest {
     @Test
     void givenAppealNotFound_whenFindByLegacyAppealId_thenReturnsEmpty_andDoesNotMap() {
         int legacyAppealId = 123;
-        when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(null);
+        when(iojAppealRepository.findByLegacyAppealIdAndRolledBackAtIsNull(legacyAppealId))
+                .thenReturn(Optional.empty());
 
         Optional<ApiGetIojAppealResponse> result = iojAppealService.find(legacyAppealId);
 
         assertThat(result).isEmpty();
-        verify(iojAppealRepository).findIojAppealByLegacyAppealId(legacyAppealId);
+        verify(iojAppealRepository).findByLegacyAppealIdAndRolledBackAtIsNull(legacyAppealId);
         verifyNoInteractions(iojAppealMapper);
         verifyNoMoreInteractions(iojAppealRepository);
     }
@@ -115,14 +92,15 @@ class IojAppealServiceTest {
                 IojAppealEntity.builder().legacyAppealId(legacyAppealId).build();
         ApiGetIojAppealResponse dto = new ApiGetIojAppealResponse().withLegacyAppealId(legacyAppealId);
 
-        when(iojAppealRepository.findIojAppealByLegacyAppealId(legacyAppealId)).thenReturn(entity);
+        when(iojAppealRepository.findByLegacyAppealIdAndRolledBackAtIsNull(legacyAppealId))
+                .thenReturn(Optional.of(entity));
         when(iojAppealMapper.mapEntityToDTO(entity)).thenReturn(dto);
 
         Optional<ApiGetIojAppealResponse> result = iojAppealService.find(legacyAppealId);
 
         assertThat(result).containsSame(dto);
-        verify(iojAppealRepository).findIojAppealByLegacyAppealId(legacyAppealId);
         verify(iojAppealMapper).mapEntityToDTO(entity);
+        verify(iojAppealRepository).findByLegacyAppealIdAndRolledBackAtIsNull(legacyAppealId);
         verifyNoMoreInteractions(iojAppealRepository, iojAppealMapper);
     }
 
@@ -164,6 +142,65 @@ class IojAppealServiceTest {
         iojAppealService.delete(entity);
 
         verify(iojAppealRepository).delete(entity);
+        verifyNoInteractions(iojAppealMapper);
+        verifyNoMoreInteractions(iojAppealRepository);
+    }
+
+    @Test
+    void givenAppealId_whenFindEntityIsInvoked_thenDelegatesToRepository() {
+        IojAppealEntity entity = IojAppealEntity.builder().appealId(appealId).build();
+
+        when(iojAppealRepository.findByAppealId(appealId)).thenReturn(Optional.of(entity));
+
+        Optional<IojAppealEntity> result = iojAppealService.findEntity(appealId);
+
+        assertThat(result).containsSame(entity);
+        verify(iojAppealRepository).findByAppealId(appealId);
+        verifyNoInteractions(iojAppealMapper);
+        verifyNoMoreInteractions(iojAppealRepository);
+    }
+
+    @Test
+    void givenLegacyAppealId_whenAppealHasNotBeenRolledBack_thenReturnsFalse() {
+        int legacyAppealId = 123;
+
+        when(iojAppealRepository.existsByLegacyAppealIdAndRolledBackAtIsNotNull(legacyAppealId))
+                .thenReturn(false);
+
+        boolean result = iojAppealService.hasBeenRolledBack(legacyAppealId);
+
+        assertThat(result).isFalse();
+        verify(iojAppealRepository).existsByLegacyAppealIdAndRolledBackAtIsNotNull(legacyAppealId);
+        verifyNoMoreInteractions(iojAppealRepository);
+        verifyNoInteractions(iojAppealMapper);
+    }
+
+    @Test
+    void givenLegacyAppealId_whenAppealHasBeenRolledBack_thenReturnsTrue() {
+        int legacyAppealId = 123;
+
+        when(iojAppealRepository.existsByLegacyAppealIdAndRolledBackAtIsNotNull(legacyAppealId))
+                .thenReturn(true);
+
+        boolean result = iojAppealService.hasBeenRolledBack(legacyAppealId);
+
+        assertThat(result).isTrue();
+        verify(iojAppealRepository).existsByLegacyAppealIdAndRolledBackAtIsNotNull(legacyAppealId);
+        verifyNoInteractions(iojAppealMapper);
+        verifyNoMoreInteractions(iojAppealRepository);
+    }
+
+    @Test
+    void givenEntity_whenMarkRolledBackIsInvoked_thenSetsRolledBackAtToNowAndSaves() {
+        Instant before = Instant.now();
+
+        IojAppealEntity entity = IojAppealEntity.builder().build();
+        iojAppealService.markRolledBack(entity);
+
+        Instant after = Instant.now();
+
+        assertThat(entity.getRolledBackAt()).isBetween(before, after);
+        verify(iojAppealRepository).save(entity);
         verifyNoInteractions(iojAppealMapper);
         verifyNoMoreInteractions(iojAppealRepository);
     }

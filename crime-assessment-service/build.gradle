@@ -117,14 +117,31 @@ jacocoTestCoverageVerification {
             element = 'CLASS'
             // placeholder exclude for ease of modification.
             excludes = ['uk.gov.justice.laa.crime.assessmentservice.AssessmentServiceApplication',
-                        'uk.gov.justice.laa.crime.assessmentservice.ServicesConfiguration',
-                        'uk.gov.justice.laa.crime.assessmentservice.WebClientsConfiguration',
-                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.IojAppealController',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.controller.IojAppealApi',
                         'uk.gov.justice.laa.crime.assessmentservice.iojappeal.mapper.*',
-                        'uk.gov.justice.laa.crime.assessmentservice.passport.PassportController',
-                        'uk.gov.justice.laa.crime.assessmentservice.common.api.filter.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.repository.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.*',
+                        // TODO Remove me when PassportController/Service are fully covered by tests
+                        'uk.gov.justice.laa.crime.assessmentservice.passport.controller.PassportController',
+                        'uk.gov.justice.laa.crime.assessmentservice.passport.service.PassportService',
+
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditDomain',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditEventType',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditEventRequest',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditIdentifier',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditIdentifierType',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditOutcome',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.api.AuditPath',
+
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.internal.entity.*',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.internal.listener.AuditEventPublished',
+                        'uk.gov.justice.laa.crime.assessmentservice.audit.internal.repository.*',
+
                         'uk.gov.justice.laa.crime.assessmentservice.common.api.exception.*',
-                        'uk.gov.justice.laa.crime.assessmentservice.config.*'
+                        'uk.gov.justice.laa.crime.assessmentservice.common.api.config.*'
+
+
             ]
             limit {
                 minimum = 0.8

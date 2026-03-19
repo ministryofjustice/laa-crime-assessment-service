@@ -241,6 +241,66 @@ class IojAuditRecorderTest {
         assertThat(details(payload)).isInstanceOf(Map.class);
     }
 
+    @Test
+    void givenRollbackRequest_whenRecordRollbackSuccess_thenDualWriteSuccessPayloadAndIdentifiersAreRecorded() {
+        UUID appealId = UUID.randomUUID();
+        int legacyAppealId = 123;
+
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
+        when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
+
+        iojAuditRecorder.recordRollbackSuccess(appealId, legacyAppealId);
+
+        AuditEventRequest req = captureSingleRecordedRequest();
+
+        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
+        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent()
+                .get()
+                .extracting(AuditIdentifier::value)
+                .isEqualTo(appealId.toString());
+
+        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent()
+                .get()
+                .extracting(AuditIdentifier::value)
+                .isEqualTo(String.valueOf(legacyAppealId));
+
+        Map<String, Object> payload = payload(req);
+        assertThat(payload)
+                .containsEntry("path", AuditPath.DUAL_WRITE_SUCCESS)
+                .containsEntry("outcome", AuditOutcome.SUCCESS);
+
+        assertThat(details(payload)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void givenRollbackRequest_whenRecordRollbackFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
+        UUID appealId = UUID.randomUUID();
+        int legacyAppealId = 123;
+
+        Exception e = new RuntimeException("example error");
+
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
+        when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
+
+        iojAuditRecorder.recordRollbackFailure(appealId, legacyAppealId, e);
+
+        AuditEventRequest req = captureSingleRecordedRequest();
+
+        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
+        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
+        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent();
+
+        Map<String, Object> payload = payload(req);
+        assertThat(payload)
+                .containsEntry("path", AuditPath.DUAL_WRITE_FAILURE)
+                .containsEntry("outcome", AuditOutcome.FAILURE);
+
+        assertThat(details(payload)).isInstanceOf(Map.class);
+    }
+
     private AuditEventRequest captureSingleRecordedRequest() {
         verify(audit, times(1)).record(requestCaptor.capture());
         verify(clientIdResolver, times(1)).resolveOrAnonymous();
