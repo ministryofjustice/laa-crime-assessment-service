@@ -6,7 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_FIELD_IS_MISSING;
+import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.validator.ApiCreateIojAppealRequestValidator.ERROR_INCORRECT_COMBINATION;
 
 import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
@@ -20,6 +20,7 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
+import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 
 import java.util.UUID;
@@ -145,7 +146,7 @@ class IojAppealControllerTest {
     @Test
     void givenCustomValidationFailure_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
-        request.getIojAppealMetadata().setLegacyApplicationId(null);
+        request.getIojAppeal().setAppealAssessor(IojAppealAssessor.CASEWORKER);
 
         mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -158,10 +159,10 @@ class IojAppealControllerTest {
                 .andExpect(jsonPath("$.errors.errors").isArray())
                 .andExpect(jsonPath(
                         "$.errors.errors[?(@.field == '%s')].message"
-                                .formatted(ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID.getName()),
+                                .formatted(ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR.getName()),
                         Matchers.hasItem(String.format(
-                                ERROR_FIELD_IS_MISSING,
-                                ApiCreateIojAppealRequestFields.LEGACY_APPLICATION_ID.getName()))));
+                                ERROR_INCORRECT_COMBINATION,
+                                ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR.getName()))));
 
         verifyNoInteractions(iojAppealOrchestrationService);
     }
