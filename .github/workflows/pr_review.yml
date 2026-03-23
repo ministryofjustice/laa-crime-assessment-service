@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    types: [ opened, reopened, edited, ready_for_review ]
+
+jobs:
+  pr_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR description check
+        env:
+          DESCRIPTION: ${{ github.event.pull_request.body }}
+          COMMIT_COUNT: ${{ github.event.pull_request.commits }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          failed=0
+          if ! [[ $TITLE =~ ^(WIP: )?[a-zA-Z]{4}-[0-9]+\ -\ .*$ ]]; then
+            echo "Please update the Title to match the form: [Ticket Prefix]-[Ticket Number] - [Description]."
+            echo "E.g. LCAM-1234 - Fixes fatal error"
+            failed=1
+          fi
+          
+          if [[ $DESCRIPTION == *"Describe what you did and why"* ]]; then
+            echo "Please add a meaningful description to your PR."
+            failed=1
+          fi
+          if [[ $DESCRIPTION =~ https://dsdmoj.atlassian.net/browse/[A-Za-z]+-[xX]+ ]]; then
+            echo "Please update the Jira link to point to the corresponding work item(s)."
+            failed=1
+          fi
+          commit_limit=40
+          if (( $COMMIT_COUNT > $commit_limit )); then
+            echo "You have exceeded the recommended limit of $commit_limit commits in this PR. Please fix-up your commits to make them more individually meaningful."
+            failed=1
+          fi
+          if (( $failed == 1 )); then
+            exit 1
+          fi
+          
+
