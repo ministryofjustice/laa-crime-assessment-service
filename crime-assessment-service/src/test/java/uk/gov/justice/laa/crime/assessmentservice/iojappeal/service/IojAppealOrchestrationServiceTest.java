@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
-import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentCreateException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
@@ -274,6 +274,7 @@ class IojAppealOrchestrationServiceTest {
         UUID appealId = UUID.randomUUID();
         IojAppealEntity entity = mock(IojAppealEntity.class);
         when(entity.getAppealId()).thenReturn(appealId);
+        when(entity.getLegacyAppealId()).thenReturn(999);
 
         ApiCreateIojAppealResponse legacyCreated = new ApiCreateIojAppealResponse().withLegacyAppealId(999);
 
@@ -312,7 +313,7 @@ class IojAppealOrchestrationServiceTest {
         doThrow(exception).when(iojAppealService).save(entity);
 
         assertThatThrownBy(() -> service.createIojAppeal(request))
-                .isInstanceOf(AssessmentRollbackException.class)
+                .isInstanceOf(AssessmentCreateException.class)
                 .hasMessageContaining("Error linking appealId")
                 .hasMessageContaining(appealId.toString())
                 .hasMessageContaining("1001")
@@ -320,7 +321,7 @@ class IojAppealOrchestrationServiceTest {
 
         // rollback + delete
         verify(entity).setLegacyAppealId(1001);
-        verify(iojAppealService).delete(entity);
+        verify(iojAppealService).markRolledBack(entity);
         verify(legacyIojAppealService).rollback(1001);
 
         // failure audit uses legacy id + exception

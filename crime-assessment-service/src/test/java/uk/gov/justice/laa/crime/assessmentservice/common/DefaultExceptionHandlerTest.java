@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
-import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentCreateException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.DefaultExceptionHandler;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
@@ -194,7 +194,7 @@ class DefaultExceptionHandlerTest {
 
     @Test
     void givenAssessmentRollbackException_whenHandleRollbackFailure_thenReturns500WithExceptionMessage() {
-        AssessmentRollbackException exception = new AssessmentRollbackException("Rollback failed");
+        AssessmentCreateException exception = new AssessmentCreateException("Rollback failed");
 
         ResponseEntity<ProblemDetail> response = handler.handleRollbackFailure(exception);
 

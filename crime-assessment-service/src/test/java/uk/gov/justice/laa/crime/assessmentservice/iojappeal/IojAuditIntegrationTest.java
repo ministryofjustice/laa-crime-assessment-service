@@ -43,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -53,6 +54,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+@SpringBootTest
 @AutoConfigureMockMvc
 class IojAuditIntegrationTest extends WiremockIntegrationTest {
 
@@ -68,7 +70,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     @Autowired
     private IojAppealRepository iojAppealRepository;
@@ -85,13 +87,13 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
     @BeforeEach
     void setup() throws JsonProcessingException {
         stubForOAuth();
-        iojAppealRepository.deleteAll();
         iojAuditEventRepository.deleteAll();
+        iojAppealRepository.deleteAll();
     }
 
     @Test
     void givenLocalMiss_whenFindByAppealId_thenAuditRecordIsPersisted() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL + "/" + TestConstants.APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL + "/" + TestConstants.APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
 
@@ -112,7 +114,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
         entity.setLegacyAppealId(TestConstants.LEGACY_APPEAL_ID);
         iojAppealRepository.save(entity);
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isOk());
 
@@ -131,7 +133,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
 
         doReturn(false).when(migrationProperties).legacyReadFallbackEnabled();
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
 
@@ -158,7 +160,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
         wiremock.stubFor(get(urlEqualTo(MAAT_API_APPEAL_URL + "/" + TestConstants.LEGACY_APPEAL_ID))
                 .willReturn(okJson(objectMapper.writeValueAsString(response))));
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isOk());
 
@@ -176,7 +178,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
         wiremock.stubFor(get(urlEqualTo(MAAT_API_APPEAL_URL + "/" + TestConstants.LEGACY_APPEAL_ID))
                 .willReturn(WireMock.notFound()));
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
 
@@ -199,7 +201,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"message\":\"example failure\"}")));
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL_FIND_LEGACY + "/" + TestConstants.LEGACY_APPEAL_ID)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().is5xxServerError());
 
@@ -217,9 +219,9 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
     @Test
     void givenAppealExists_whenFindByAppealIdHit_thenAuditRecordIsPersisted() throws Exception {
         IojAppealEntity entity = TestDataBuilder.buildIojAppealEntity();
-        iojAppealRepository.save(entity);
+        iojAppealRepository.saveAndFlush(entity);
 
-        mvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL + "/" + entity.getAppealId())
+        mockMvc.perform(MockMvcRequestBuilders.get(ENDPOINT_URL + "/" + entity.getAppealId())
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isOk());
 
@@ -241,7 +243,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL))
                 .willReturn(okJson(objectMapper.writeValueAsString(maatResponse))));
 
-        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_CREATE)
+        mockMvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_CREATE)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -272,7 +274,7 @@ class IojAuditIntegrationTest extends WiremockIntegrationTest {
         // rollback endpoint succeeds
         wiremock.stubFor(patch(urlEqualTo(MAAT_API_APPEAL_ROLLBACK_URL)).willReturn(WireMock.ok()));
 
-        mvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_CREATE)
+        mockMvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL_CREATE)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

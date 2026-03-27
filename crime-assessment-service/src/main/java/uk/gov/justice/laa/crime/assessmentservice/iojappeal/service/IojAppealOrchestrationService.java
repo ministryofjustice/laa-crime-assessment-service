@@ -3,7 +3,7 @@ package uk.gov.justice.laa.crime.assessmentservice.iojappeal.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.audit.api.IojAuditRecorder;
-import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentRollbackException;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentCreateException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.config.IojAppealMigrationProperties;
 import uk.gov.justice.laa.crime.assessmentservice.iojappeal.entity.IojAppealEntity;
@@ -78,29 +78,36 @@ public class IojAppealOrchestrationService {
         }
     }
 
-    @Transactional
     public ApiCreateIojAppealResponse createIojAppeal(ApiCreateIojAppealRequest request) {
-        IojAppealEntity appealEntity = iojAppealService.create(request);
-        ApiCreateIojAppealResponse legacyAppeal = legacyIojAppealService.create(request);
-        Integer legacyAppealId = legacyAppeal.getLegacyAppealId();
-
+        IojAppealEntity appealEntity;
         try {
+            appealEntity = iojAppealService.create(request);
+        } catch (Exception e) {
+            throw new AssessmentCreateException(String.format("Error creating initial IojAppeal: %s", e.getMessage()));
+        }
+        createAndLinkLegacyAppeal(request, appealEntity);
+        return new ApiCreateIojAppealResponse()
+                .withAppealId(appealEntity.getAppealId().toString())
+                .withLegacyAppealId(appealEntity.getLegacyAppealId());
+    }
+
+    public void createAndLinkLegacyAppeal(ApiCreateIojAppealRequest request, IojAppealEntity appealEntity) {
+        Integer legacyAppealId = null;
+        try {
+            legacyAppealId = legacyIojAppealService.create(request).getLegacyAppealId();
             appealEntity.setLegacyAppealId(legacyAppealId);
             iojAppealService.save(appealEntity);
-            iojAuditRecorder.recordCreateSuccess(appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request);
+            iojAuditRecorder.recordCreateSuccess(appealEntity.getAppealId(), appealEntity.getLegacyAppealId(), request);
         } catch (Exception e) {
-            legacyIojAppealService.rollback(legacyAppealId);
-            iojAppealService.delete(appealEntity);
-            iojAuditRecorder.recordCreateFailure(
-                    appealEntity.getAppealId(), legacyAppeal.getLegacyAppealId(), request, e);
-            throw new AssessmentRollbackException(String.format(
+            if (legacyAppealId != null) {
+                legacyIojAppealService.rollback(legacyAppealId);
+            }
+            iojAppealService.markRolledBack(appealEntity);
+            iojAuditRecorder.recordCreateFailure(appealEntity.getAppealId(), legacyAppealId, request, e);
+            throw new AssessmentCreateException(String.format(
                     "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
                     appealEntity.getAppealId().toString(), legacyAppealId, e.getMessage()));
         }
-
-        return new ApiCreateIojAppealResponse()
-                .withAppealId(appealEntity.getAppealId().toString())
-                .withLegacyAppealId(legacyAppealId);
     }
 
     @Transactional

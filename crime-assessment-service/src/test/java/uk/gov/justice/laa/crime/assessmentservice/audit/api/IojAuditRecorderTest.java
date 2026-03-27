@@ -19,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -214,17 +216,19 @@ class IojAuditRecorderTest {
         assertThat(details(payload)).isInstanceOf(Map.class);
     }
 
-    @Test
-    void givenCreateRequestAndException_whenRecordCreateFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(ints = {123})
+    void givenCreateRequestAndException_whenRecordCreateFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded(
+            Integer legacyId) {
         UUID appealId = UUID.randomUUID();
-        int legacyAppealId = 123;
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
         Exception e = new RuntimeException("example error");
 
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAuditRecorder.recordCreateFailure(appealId, legacyAppealId, request, e);
+        iojAuditRecorder.recordCreateFailure(appealId, legacyId, request, e);
 
         AuditEventRequest req = captureSingleRecordedRequest();
 
@@ -232,6 +236,14 @@ class IojAuditRecorderTest {
         assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
         assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
+        String actualLegacyId = req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
+                .get()
+                .value();
+        if (legacyId == null) {
+            assertThat(actualLegacyId).isNull();
+        } else {
+            assertThat(actualLegacyId).isEqualTo(String.valueOf(legacyId));
+        }
 
         Map<String, Object> payload = payload(req);
         assertThat(payload)
