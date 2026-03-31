@@ -21,7 +21,7 @@ def versions = [
         resilience4j                : "2.3.0",
         mapstruct                   : "1.6.3",
         crimeCommonsClasses         : "4.30.2",
-        crimeCommonsModSchemas      : "1.45.1",
+        crimeCommonsModSchemas      : "1.47.0",
         lombok                      : "1.18.42"
 ]
 

@@ -6,11 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ApiCreateIojAppealRequestFields {
-    LEGACY_APPLICATION_ID("Legacy Application Id"),
-    APPEAL_SUCCESSFUL("Appeal Successful"),
     APPEAL_ASSESSOR("Appeal Assessor"),
-    APPEAL_REASON("Appeal Reason"),
-    APPLICATION_RECEIVED_DATE("Application Received Date");
+    APPEAL_REASON("Appeal Reason");
 
     private final String name;
 }
