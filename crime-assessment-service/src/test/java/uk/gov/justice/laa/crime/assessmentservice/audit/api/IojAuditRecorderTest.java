@@ -86,7 +86,8 @@ class IojAuditRecorderTest {
         assertThat(auditRequest.triggeredBy()).isEqualTo(CLIENT_ID);
         assertThat(auditRequest.traceId()).isEqualTo(TRACE_ID);
 
-        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isEmpty();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isEmpty();
 
         Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
@@ -229,10 +230,12 @@ class IojAuditRecorderTest {
         AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
         assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.CREATE);
-        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent();
         assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
-        String actualLegacyId = auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
+        String actualLegacyId = auditRequest
+                .getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
                 .get()
                 .value();
         assertThat(actualLegacyId).isEqualTo(String.valueOf(legacyId));
@@ -261,10 +264,12 @@ class IojAuditRecorderTest {
         AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
         assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.CREATE);
-        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent();
         assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
-        String actualLegacyId = auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
+        String actualLegacyId = auditRequest
+                .getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
                 .get()
                 .value();
         assertThat(actualLegacyId).isNull();
@@ -325,7 +330,8 @@ class IojAuditRecorderTest {
         AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
         assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.ROLLBACK);
-        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent();
         assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
 
