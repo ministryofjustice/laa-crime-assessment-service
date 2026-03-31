@@ -7,11 +7,22 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentRequest;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentResponse;
+import uk.gov.justice.laa.crime.common.model.passported.DeclaredBenefit;
+import uk.gov.justice.laa.crime.common.model.passported.PassportedAssessment;
+import uk.gov.justice.laa.crime.common.model.passported.PassportedAssessmentMetadata;
+import uk.gov.justice.laa.crime.enums.BenefitRecipient;
+import uk.gov.justice.laa.crime.enums.BenefitType;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
+import uk.gov.justice.laa.crime.enums.PassportAssessmentDecision;
+import uk.gov.justice.laa.crime.enums.PassportAssessmentDecisionReason;
+import uk.gov.justice.laa.crime.enums.ReviewType;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @UtilityClass
@@ -31,15 +42,20 @@ public class TestDataBuilder {
         var metaData = new IojAppealMetadata();
         metaData.setApplicationReceivedDate(LocalDate.now().minusDays(7));
         metaData.setLegacyApplicationId(456);
-        var session = new ApiUserSession();
-        session.setUserName("Test User");
-        session.setSessionId("Test Session");
-        metaData.setUserSession(session);
+
         metaData.setCaseManagementUnitId(789);
+        metaData.setUserSession(buildPopulatedUserSession());
 
         request.setIojAppeal(appeal);
         request.setIojAppealMetadata(metaData);
         return request;
+    }
+
+    public ApiUserSession buildPopulatedUserSession() {
+        var session = new ApiUserSession();
+        session.setUserName("Test User");
+        session.setSessionId("Test Session");
+        return session;
     }
 
     public ApiCreateIojAppealResponse buildValidPopulatedCreateIojAppealResponse() {
@@ -67,5 +83,46 @@ public class TestDataBuilder {
 
     public IojAppealEntity buildIojAppealEntity() {
         return buildIojAppealEntity(false);
+    }
+
+    public DeclaredBenefit buildDeclaredBenefit() {
+        return new DeclaredBenefit()
+                .withBenefitType(BenefitType.ESA)
+                .withBenefitRecipient(BenefitRecipient.APPLICANT)
+                .withLastSignOnDate(TestConstants.TEST_DATE)
+                .withLegacyPartnerId(456);
+    }
+
+    public ApiCreatePassportedAssessmentRequest buildValidPopulatedCreatePassportedAssessmentRequest() {
+        ApiCreatePassportedAssessmentRequest request = new ApiCreatePassportedAssessmentRequest();
+
+        PassportedAssessment pa = new PassportedAssessment()
+                .withAssessmentDate(LocalDateTime.now())
+                .withNotes("Test Notes")
+                .withDecisionReason(PassportAssessmentDecisionReason.DOCUMENTATION_SUPPLIED)
+                .withAssessmentDecision(PassportAssessmentDecision.PASS)
+                .withAssessmentReason(NewWorkReason.NEW)
+                .withDeclaredUnder18(true)
+                .withReviewType(ReviewType.NAFI)
+                .withDeclaredBenefit(buildDeclaredBenefit());
+
+        request.setPassportedAssessment(pa);
+
+        PassportedAssessmentMetadata pam = new PassportedAssessmentMetadata()
+                .withApplicationId(123)
+                .withLegacyApplicationId(456)
+                .withUserSession(buildPopulatedUserSession())
+                .withCaseManagementUnitId(1000)
+                .withUsn(22200);
+
+        request.setPassportedAssessmentMetadata(pam);
+
+        return request;
+    }
+
+    public ApiCreatePassportedAssessmentResponse buildValidPopulatedCreatePassportedAssessmentResponse() {
+        return new ApiCreatePassportedAssessmentResponse()
+                .withAssessmentId(TestConstants.APPEAL_ID)
+                .withLegacyAssessmentId(TestConstants.LEGACY_APPEAL_ID);
     }
 }
