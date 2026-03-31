@@ -85,19 +85,26 @@ public class IojAppealOrchestrationService {
         } catch (Exception e) {
             throw new AssessmentCreateException(String.format("Error creating initial IojAppeal: %s", e.getMessage()));
         }
-        createAndLinkLegacyAppeal(request, appealEntity);
+        Integer legacyAppealId = createAndLinkLegacyIojAppeal(request, appealEntity);
         return new ApiCreateIojAppealResponse()
                 .withAppealId(appealEntity.getAppealId().toString())
-                .withLegacyAppealId(appealEntity.getLegacyAppealId());
+                .withLegacyAppealId(legacyAppealId);
     }
 
-    public void createAndLinkLegacyAppeal(ApiCreateIojAppealRequest request, IojAppealEntity appealEntity) {
+    /**
+     * Method to handle creation of the Legacy Appeal in the Legacy Maat DB
+     * then sets the "legacyAppealId" on the provided AppealEntity,
+     * and saves the AppealEntity.
+     * @param request Incoming REST request.
+     * @param appealEntity The non-legacy IojAppeal that will be linked to the legacy appeal.
+     * @return The id of the legacy Appeal created in the Maat DB.
+     */
+    public Integer createAndLinkLegacyIojAppeal(ApiCreateIojAppealRequest request, IojAppealEntity appealEntity) {
         Integer legacyAppealId = null;
         try {
             legacyAppealId = legacyIojAppealService.create(request).getLegacyAppealId();
             appealEntity.setLegacyAppealId(legacyAppealId);
             iojAppealService.save(appealEntity);
-            iojAuditRecorder.recordCreateSuccess(appealEntity.getAppealId(), appealEntity.getLegacyAppealId(), request);
         } catch (Exception e) {
             if (legacyAppealId != null) {
                 legacyIojAppealService.rollback(legacyAppealId);
@@ -108,6 +115,8 @@ public class IojAppealOrchestrationService {
                     "Error linking appealId %s to legacyAppealId %d, creation has been rolled back: %s",
                     appealEntity.getAppealId().toString(), legacyAppealId, e.getMessage()));
         }
+        iojAuditRecorder.recordCreateSuccess(appealEntity.getAppealId(), appealEntity.getLegacyAppealId(), request);
+        return legacyAppealId;
     }
 
     @Transactional
