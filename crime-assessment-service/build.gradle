@@ -20,13 +20,16 @@ def versions = [
         sentry                      : "8.31.0",
         resilience4j                : "2.3.0",
         mapstruct                   : "1.6.3",
-        crimeCommonsClasses         : "4.30.2",
+        crimeCommonsClasses         : "4.32.0",
         crimeCommonsModSchemas      : "1.47.0",
         lombok                      : "1.18.42"
 ]
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://central.sonatype.com/repository/maven-snapshots/"
+    }
 }
 
 ext {
