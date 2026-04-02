@@ -5,13 +5,13 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.AssessmentCreateException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.DefaultExceptionHandler;
 import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.RequestedObjectNotFoundException;
 import uk.gov.justice.laa.crime.error.ErrorExtension;
 import uk.gov.justice.laa.crime.error.ErrorMessage;
+import uk.gov.justice.laa.crime.error.ProblemDetailError;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
@@ -68,8 +68,8 @@ class DefaultExceptionHandlerTest {
     void givenParseableProblemDetail_whenHandleWebClientResponseException_thenReturnsParsedResponse() throws Exception {
         List<ErrorMessage> expectedErrors = List.of(new ErrorMessage("field", "downstream validation failed"));
 
-        ErrorExtension extension =
-                ProblemDetailUtil.buildErrorExtension(ApiError.APPLICATION_ERROR.code(), TRACE_ID, expectedErrors);
+        ErrorExtension extension = ProblemDetailUtil.buildErrorExtension(
+                ProblemDetailError.APPLICATION_ERROR.code(), TRACE_ID, expectedErrors);
 
         ProblemDetail downstreamProblemDetail =
                 ProblemDetailUtil.buildProblemDetail(HttpStatus.BAD_REQUEST, "Downstream detail", extension);
@@ -89,7 +89,7 @@ class DefaultExceptionHandlerTest {
                 response,
                 HttpStatus.BAD_REQUEST,
                 downstreamProblemDetail.getDetail(),
-                ApiError.APPLICATION_ERROR.code(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
                 expectedErrors);
     }
 
@@ -105,7 +105,11 @@ class DefaultExceptionHandlerTest {
         ResponseEntity<ProblemDetail> response = handler.handleWebClientResponseException(exception);
 
         assertProblemDetail(
-                response, HttpStatus.BAD_GATEWAY, exception.getMessage(), ApiError.APPLICATION_ERROR.code(), List.of());
+                response,
+                HttpStatus.BAD_GATEWAY,
+                exception.getMessage(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
+                List.of());
     }
 
     @Test
@@ -116,7 +120,11 @@ class DefaultExceptionHandlerTest {
         ResponseEntity<ProblemDetail> response = handler.handleNotFound(exception);
 
         assertProblemDetail(
-                response, HttpStatus.NOT_FOUND, exception.getMessage(), ApiError.OBJECT_NOT_FOUND.code(), List.of());
+                response,
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                ProblemDetailError.OBJECT_NOT_FOUND.code(),
+                List.of());
     }
 
     @Test
@@ -128,8 +136,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                ApiError.APPLICATION_ERROR.defaultDetail(),
-                ApiError.APPLICATION_ERROR.code(),
+                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
                 List.of());
     }
 
@@ -155,8 +163,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ApiError.VALIDATION_FAILURE.defaultDetail(),
-                ApiError.VALIDATION_FAILURE.code(),
+                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
+                ProblemDetailError.VALIDATION_FAILURE.code(),
                 expectedErrors);
     }
 
@@ -173,8 +181,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ApiError.VALIDATION_FAILURE.defaultDetail(),
-                ApiError.VALIDATION_FAILURE.code(),
+                ProblemDetailError.VALIDATION_FAILURE.defaultDetail(),
+                ProblemDetailError.VALIDATION_FAILURE.code(),
                 expectedErrors);
     }
 
@@ -187,8 +195,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ApiError.DB_ERROR.defaultDetail(),
-                ApiError.DB_ERROR.code(),
+                ProblemDetailError.DB_ERROR.defaultDetail(),
+                ProblemDetailError.DB_ERROR.code(),
                 List.of());
     }
 
@@ -202,7 +210,7 @@ class DefaultExceptionHandlerTest {
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Rollback failed",
-                ApiError.APPLICATION_ERROR.code(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
                 List.of());
     }
 
@@ -215,8 +223,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                ApiError.APPLICATION_ERROR.defaultDetail(),
-                ApiError.APPLICATION_ERROR.code(),
+                ProblemDetailError.APPLICATION_ERROR.defaultDetail(),
+                ProblemDetailError.APPLICATION_ERROR.code(),
                 List.of());
     }
 
@@ -243,8 +251,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ApiError.BAD_REQUEST.defaultDetail(),
-                ApiError.BAD_REQUEST.code(),
+                ProblemDetailError.BAD_REQUEST.defaultDetail(),
+                ProblemDetailError.BAD_REQUEST.code(),
                 List.of());
     }
 
@@ -258,8 +266,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.BAD_REQUEST,
-                ApiError.BAD_REQUEST.defaultDetail(),
-                ApiError.BAD_REQUEST.code(),
+                ProblemDetailError.BAD_REQUEST.defaultDetail(),
+                ProblemDetailError.BAD_REQUEST.code(),
                 List.of());
     }
 
@@ -272,8 +280,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.METHOD_NOT_ALLOWED,
-                ApiError.METHOD_NOT_ALLOWED.defaultDetail(),
-                ApiError.METHOD_NOT_ALLOWED.code(),
+                ProblemDetailError.METHOD_NOT_ALLOWED.defaultDetail(),
+                ProblemDetailError.METHOD_NOT_ALLOWED.code(),
                 List.of());
     }
 
@@ -286,8 +294,8 @@ class DefaultExceptionHandlerTest {
         assertProblemDetail(
                 response,
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                ApiError.UNSUPPORTED_MEDIA_TYPE.defaultDetail(),
-                ApiError.UNSUPPORTED_MEDIA_TYPE.code(),
+                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.defaultDetail(),
+                ProblemDetailError.UNSUPPORTED_MEDIA_TYPE.code(),
                 List.of());
     }
 

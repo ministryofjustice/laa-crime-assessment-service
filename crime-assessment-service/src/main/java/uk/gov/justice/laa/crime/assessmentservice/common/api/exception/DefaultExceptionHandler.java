@@ -2,9 +2,8 @@ package uk.gov.justice.laa.crime.assessmentservice.common.api.exception;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.justice.laa.crime.assessmentservice.common.api.advice.ApiError;
-import uk.gov.justice.laa.crime.error.ErrorExtension;
 import uk.gov.justice.laa.crime.error.ErrorMessage;
+import uk.gov.justice.laa.crime.error.ProblemDetailError;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
 import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
@@ -48,44 +47,44 @@ public class DefaultExceptionHandler {
 
             return buildResponse(
                     ex.getStatusCode(),
-                    ApiError.APPLICATION_ERROR,
+                    ProblemDetailError.APPLICATION_ERROR,
                     problemDetail.getDetail(),
                     ProblemDetailUtil.getErrorMessages(problemDetail));
 
         } catch (JsonProcessingException parseEx) {
             log.warn("Unable to read error response. TraceId={}", getTraceId(), parseEx);
-            return buildResponse(ex.getStatusCode(), ApiError.APPLICATION_ERROR, ex.getMessage(), List.of());
+            return buildResponse(ex.getStatusCode(), ProblemDetailError.APPLICATION_ERROR, ex.getMessage(), List.of());
         }
     }
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<ProblemDetail> handleBadRequest(Exception ex) {
         log.warn("Bad request. TraceId={} Detail={}", getTraceId(), ex.getMessage());
-        return buildResponse(HttpStatus.BAD_REQUEST, ApiError.BAD_REQUEST);
+        return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         log.warn("Method not supported. TraceId={} Detail={}", getTraceId(), ex.getMessage());
-        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ApiError.METHOD_NOT_ALLOWED);
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ProblemDetailError.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
         log.warn("Unsupported media type. TraceId={} Detail={}", getTraceId(), ex.getMessage());
-        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ApiError.UNSUPPORTED_MEDIA_TYPE);
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ProblemDetailError.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler(RequestedObjectNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(RequestedObjectNotFoundException ex) {
         log.info("Resource not found. TraceId={} Detail={}", getTraceId(), ex.getMessage());
-        return buildResponse(HttpStatus.NOT_FOUND, ApiError.OBJECT_NOT_FOUND, ex.getMessage(), List.of());
+        return buildResponse(HttpStatus.NOT_FOUND, ProblemDetailError.OBJECT_NOT_FOUND, ex.getMessage(), List.of());
     }
 
     @ExceptionHandler(WebClientRequestException.class)
     public ResponseEntity<ProblemDetail> handleWebClientRequestException(WebClientRequestException ex) {
         log.error("Request to service failed. TraceId={}", getTraceId(), ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ApiError.APPLICATION_ERROR);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ProblemDetailError.APPLICATION_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -96,7 +95,7 @@ public class DefaultExceptionHandler {
                 .map(e -> new ErrorMessage(e.getField(), e.getDefaultMessage()))
                 .toList();
 
-        return buildResponse(HttpStatus.BAD_REQUEST, ApiError.VALIDATION_FAILURE, messages);
+        return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.VALIDATION_FAILURE, messages);
     }
 
     @ExceptionHandler(CrimeValidationException.class)
@@ -110,47 +109,46 @@ public class DefaultExceptionHandler {
                         ex.getExceptionMessages().stream()
                                 .map(ErrorMessage::message)
                                 .toList()));
-        return buildResponse(HttpStatus.BAD_REQUEST, ApiError.VALIDATION_FAILURE, ex.getExceptionMessages());
+        return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.VALIDATION_FAILURE, ex.getExceptionMessages());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ProblemDetail> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         log.warn("DB constraint violation. TraceId={}", getTraceId(), ex);
-        return buildResponse(HttpStatus.BAD_REQUEST, ApiError.DB_ERROR);
+        return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.DB_ERROR);
     }
 
     @ExceptionHandler(AssessmentCreateException.class)
     public ResponseEntity<ProblemDetail> handleRollbackFailure(AssessmentCreateException ex) {
         log.error("Assessment create failed. TraceId={}", getTraceId(), ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ApiError.APPLICATION_ERROR, ex.getMessage(), List.of());
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR, ProblemDetailError.APPLICATION_ERROR, ex.getMessage(), List.of());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnhandled(Exception ex) {
         log.error("Unhandled exception. TraceId={}", getTraceId(), ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ApiError.APPLICATION_ERROR);
-    }
-
-    private ErrorExtension buildErrorExtension(String code, String traceId, List<ErrorMessage> errorMessages) {
-        return ProblemDetailUtil.buildErrorExtension(code, traceId, errorMessages);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ProblemDetailError.APPLICATION_ERROR);
     }
 
     private ResponseEntity<ProblemDetail> buildResponse(
-            HttpStatusCode status, ApiError error, String detailOverride, List<ErrorMessage> errors) {
-
-        ErrorExtension extension = buildErrorExtension(error.code(), getTraceId(), errors);
+            HttpStatusCode status, ProblemDetailError error, String detailOverride, List<ErrorMessage> errors) {
         return ResponseEntity.status(status)
-                .body(ProblemDetailUtil.buildProblemDetail(status, detailOverride, extension));
+                .body(ProblemDetailUtil.buildProblemDetail(
+                        status,
+                        detailOverride,
+                        ProblemDetailUtil.buildErrorExtension(error.code(), getTraceId(), errors)));
     }
 
-    private ResponseEntity<ProblemDetail> buildResponse(HttpStatusCode status, ApiError error) {
-
-        return buildResponse(status, error, error.defaultDetail(), List.of());
+    private ResponseEntity<ProblemDetail> buildResponse(HttpStatusCode status, ProblemDetailError error) {
+        return ResponseEntity.status(status)
+                .body(ProblemDetailUtil.buildProblemDetail(status, error, getTraceId(), List.of()));
     }
 
     private ResponseEntity<ProblemDetail> buildResponse(
-            HttpStatusCode status, ApiError error, List<ErrorMessage> errors) {
+            HttpStatusCode status, ProblemDetailError error, List<ErrorMessage> errors) {
 
-        return buildResponse(status, error, error.defaultDetail(), errors);
+        return ResponseEntity.status(status)
+                .body(ProblemDetailUtil.buildProblemDetail(status, error, getTraceId(), errors));
     }
 }
