@@ -81,8 +81,9 @@ public class IojAuditRecorder {
                 AuditPayloads.createPayload(AuditOutcome.SUCCESS, AuditPath.DUAL_WRITE_SUCCESS, details)));
     }
 
-    public void recordCreateFailure(UUID appealId, int legacyAppealId, ApiCreateIojAppealRequest request, Exception e) {
-        log.error("Failed to update local appeal with legacyAppealId", e);
+    public void recordCreateFailure(
+            UUID appealId, Integer legacyAppealId, ApiCreateIojAppealRequest request, Exception e) {
+        log.error("Failed to update local appeal with appealId {}, legacyAppealId {} : ", appealId, legacyAppealId, e);
 
         Map<String, Object> details = IojAuditPayloadMapper.mapCreateDetails(request);
 

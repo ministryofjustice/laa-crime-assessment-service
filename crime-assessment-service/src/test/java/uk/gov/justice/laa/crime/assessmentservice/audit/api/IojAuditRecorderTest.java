@@ -54,19 +54,19 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordFindByAppealId(appealId, true);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.FIND);
-        assertThat(req.triggeredBy()).isEqualTo(CLIENT_ID);
-        assertThat(req.traceId()).isEqualTo(TRACE_ID);
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.FIND);
+        assertThat(auditRequest.triggeredBy()).isEqualTo(CLIENT_ID);
+        assertThat(auditRequest.traceId()).isEqualTo(TRACE_ID);
 
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(appealId.toString());
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload).containsEntry("path", AuditPath.LOCAL_HIT).containsEntry("outcome", AuditOutcome.SUCCESS);
 
         assertThat(details(payload)).isInstanceOf(Map.class);
@@ -80,15 +80,16 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordFindByAppealId(appealId, false);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.FIND);
-        assertThat(req.triggeredBy()).isEqualTo(CLIENT_ID);
-        assertThat(req.traceId()).isEqualTo(TRACE_ID);
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.FIND);
+        assertThat(auditRequest.triggeredBy()).isEqualTo(CLIENT_ID);
+        assertThat(auditRequest.traceId()).isEqualTo(TRACE_ID);
 
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isEmpty();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isEmpty();
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.LOCAL_MISS)
                 .containsEntry("outcome", AuditOutcome.NOT_FOUND);
@@ -108,16 +109,16 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordFindByLegacyId(legacyAppealId, found);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.FIND);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.FIND);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(String.valueOf(legacyAppealId));
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload).containsEntry("path", expectedPath).containsEntry("outcome", expectedOutcome);
 
         assertThat(details(payload)).isEqualTo(Map.of());
@@ -139,13 +140,13 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordFindByLegacyIdMissThenLegacyResult(legacyAppealId, legacyFound);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.FIND);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.FIND);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload).containsEntry("path", expectedPath).containsEntry("outcome", expectedOutcome);
 
         assertThat(details(payload)).isEqualTo(Map.of());
@@ -166,13 +167,13 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordFindByLegacyIdLegacyFailure(legacyAppealId, e);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.FIND);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.FIND);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.LOCAL_MISS_LEGACY_FAILURE)
                 .containsEntry("outcome", AuditOutcome.FAILURE);
@@ -191,22 +192,22 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordCreateSuccess(appealId, legacyAppealId, request);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.CREATE);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.CREATE);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(appealId.toString());
 
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(String.valueOf(legacyAppealId));
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.DUAL_WRITE_SUCCESS)
                 .containsEntry("outcome", AuditOutcome.SUCCESS);
@@ -217,23 +218,63 @@ class IojAuditRecorderTest {
     @Test
     void givenCreateRequestAndException_whenRecordCreateFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
         UUID appealId = UUID.randomUUID();
-        int legacyAppealId = 123;
+        Integer legacyId = 123;
         ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
         Exception e = new RuntimeException("example error");
 
         when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
         when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
 
-        iojAuditRecorder.recordCreateFailure(appealId, legacyAppealId, request, e);
+        iojAuditRecorder.recordCreateFailure(appealId, legacyId, request, e);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.CREATE);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.CREATE);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
                 .isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent();
+        String actualLegacyId = auditRequest
+                .getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
+                .get()
+                .value();
+        assertThat(actualLegacyId).isEqualTo(String.valueOf(legacyId));
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
+        assertThat(payload)
+                .containsEntry("path", AuditPath.DUAL_WRITE_FAILURE)
+                .containsEntry("outcome", AuditOutcome.FAILURE);
+
+        assertThat(details(payload)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void
+            givenCreateRequestAndExceptionWithNullLegacyId_whenRecordCreateFailure_thenDualWriteFailurePayloadAndIdentifiersAreRecorded() {
+        UUID appealId = UUID.randomUUID();
+        Integer legacyId = null;
+        ApiCreateIojAppealRequest request = mock(ApiCreateIojAppealRequest.class);
+        Exception e = new RuntimeException("example error");
+
+        when(clientIdResolver.resolveOrAnonymous()).thenReturn(CLIENT_ID);
+        when(traceIdHandler.getTraceId()).thenReturn(TRACE_ID);
+
+        iojAuditRecorder.recordCreateFailure(appealId, legacyId, request, e);
+
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
+
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.CREATE);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+                .isPresent();
+        String actualLegacyId = auditRequest
+                .getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID)
+                .get()
+                .value();
+        assertThat(actualLegacyId).isNull();
+
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.DUAL_WRITE_FAILURE)
                 .containsEntry("outcome", AuditOutcome.FAILURE);
@@ -251,22 +292,22 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordRollbackSuccess(appealId, legacyAppealId);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.ROLLBACK);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(appealId.toString());
 
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent()
                 .get()
                 .extracting(AuditIdentifier::value)
                 .isEqualTo(String.valueOf(legacyAppealId));
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.DUAL_WRITE_SUCCESS)
                 .containsEntry("outcome", AuditOutcome.SUCCESS);
@@ -286,14 +327,15 @@ class IojAuditRecorderTest {
 
         iojAuditRecorder.recordRollbackFailure(appealId, legacyAppealId, e);
 
-        AuditEventRequest req = captureSingleRecordedRequest();
+        AuditEventRequest auditRequest = captureSingleRecordedRequest();
 
-        assertThat(req.eventType()).isEqualTo(AuditEventType.ROLLBACK);
-        assertThat(req.getIdentifierByName(AuditIdentifierType.APPEAL_ID)).isPresent();
-        assertThat(req.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
+        assertThat(auditRequest.eventType()).isEqualTo(AuditEventType.ROLLBACK);
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.APPEAL_ID))
+                .isPresent();
+        assertThat(auditRequest.getIdentifierByName(AuditIdentifierType.LEGACY_APPEAL_ID))
                 .isPresent();
 
-        Map<String, Object> payload = payload(req);
+        Map<String, Object> payload = payload(auditRequest);
         assertThat(payload)
                 .containsEntry("path", AuditPath.DUAL_WRITE_FAILURE)
                 .containsEntry("outcome", AuditOutcome.FAILURE);
