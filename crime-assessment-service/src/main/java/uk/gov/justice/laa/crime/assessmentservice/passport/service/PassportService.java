@@ -18,20 +18,10 @@ public class PassportService {
     private final MaatDataApiClient maatDataApiClient;
 
     public Optional<ApiGetPassportedAssessmentResponse> find(int legacyId) {
-        try {
-            return Optional.ofNullable(maatDataApiClient.getPassportAssessment(legacyId));
-        } catch (Exception e) {
-            log.error("Error occurred while retrieving passport assessment", e);
-            throw e;
-        }
+        return Optional.ofNullable(maatDataApiClient.getPassportAssessment(legacyId));
     }
 
     public ApiCreatePassportedAssessmentResponse create(ApiCreatePassportedAssessmentRequest request) {
-        try {
-            return maatDataApiClient.createPassportAssessment(request);
-        } catch (Exception e) {
-            log.error("Error occurred while creating passport assessment", e);
-            throw e;
-        }
+        return maatDataApiClient.createPassportAssessment(request);
     }
 }

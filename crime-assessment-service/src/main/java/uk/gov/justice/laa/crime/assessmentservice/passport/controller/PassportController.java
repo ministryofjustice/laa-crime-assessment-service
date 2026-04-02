@@ -30,12 +30,9 @@ public class PassportController implements PassportApi {
     @GetMapping(path = "/lookup-by-legacy-id/{legacyId}")
     public ResponseEntity<ApiGetPassportedAssessmentResponse> find(@PathVariable int legacyId) {
         Optional<ApiGetPassportedAssessmentResponse> response = passportService.find(legacyId);
-
-        return response.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.of(response);
     }
 
-    @Override
     @PostMapping
     public ResponseEntity<ApiCreatePassportedAssessmentResponse> create(
             @Valid @RequestBody ApiCreatePassportedAssessmentRequest request) {
