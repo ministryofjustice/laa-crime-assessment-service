@@ -32,12 +32,14 @@ public final class AuditRequests {
     }
 
     public static AuditEventRequest createIoj(
-            UUID appealId, int legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
+            UUID appealId, Integer legacyAppealId, String triggeredBy, String traceId, Map<String, Object> payload) {
 
         return base(AuditEventType.CREATE, triggeredBy, traceId, payload)
                 .identifiers(List.of(
                         new AuditIdentifier(AuditIdentifierType.APPEAL_ID, appealId.toString()),
-                        new AuditIdentifier(AuditIdentifierType.LEGACY_APPEAL_ID, String.valueOf(legacyAppealId))))
+                        new AuditIdentifier(
+                                AuditIdentifierType.LEGACY_APPEAL_ID,
+                                legacyAppealId != null ? String.valueOf(legacyAppealId) : null)))
                 .build();
     }
 

@@ -118,9 +118,9 @@ public class DefaultExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ProblemDetailError.DB_ERROR);
     }
 
-    @ExceptionHandler(AssessmentRollbackException.class)
-    public ResponseEntity<ProblemDetail> handleRollbackFailure(AssessmentRollbackException ex) {
-        log.error("Assessment rollback failed. TraceId={}", getTraceId(), ex);
+    @ExceptionHandler(AssessmentCreateException.class)
+    public ResponseEntity<ProblemDetail> handleRollbackFailure(AssessmentCreateException ex) {
+        log.error("Assessment create failed. TraceId={}", getTraceId(), ex);
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR, ProblemDetailError.APPLICATION_ERROR, ex.getMessage(), List.of());
     }
