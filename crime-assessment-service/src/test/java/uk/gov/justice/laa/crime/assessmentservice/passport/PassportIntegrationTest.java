@@ -4,15 +4,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.justice.laa.crime.assessmentservice.WiremockIntegrationTest;
+import uk.gov.justice.laa.crime.assessmentservice.utils.TestDataBuilder;
 import uk.gov.justice.laa.crime.common.model.passported.ApiGetPassportedAssessmentResponse;
 import uk.gov.justice.laa.crime.common.model.passported.DeclaredBenefit;
-import uk.gov.justice.laa.crime.enums.BenefitRecipient;
-import uk.gov.justice.laa.crime.enums.BenefitType;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 import uk.gov.justice.laa.crime.enums.PassportAssessmentDecision;
 import uk.gov.justice.laa.crime.enums.PassportAssessmentDecisionReason;
@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -35,17 +35,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-@DirtiesContext
+@SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureObservability
-public class PassportIntegrationTest extends WiremockIntegrationTest {
+class PassportIntegrationTest extends WiremockIntegrationTest {
     private static final String BEARER_TOKEN = "Bearer token";
     private static final String PASSPORT_ENDPOINT = "/api/internal/v1/passport";
     private static final String FIND_ENDPOINT = PASSPORT_ENDPOINT + "/lookup-by-legacy-id/";
     private static final String MAAT_API_PASSPORT_URL = "/api/internal/v2/assessment/passport-assessments";
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -57,12 +57,12 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
 
     @Test
     void givenUnauthorisedRequest_whenFindPassportIsInvoked_thenFailsWithUnauthorisedAccess() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + 1)).andExpect(status().isUnauthorized());
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + 1)).andExpect(status().isUnauthorized());
     }
 
     @Test
     void givenPassportAssessmentDoesNotExist_whenFindPassportIsInvoked_thenFailsWithNotFound() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + 1).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + 1).header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
     }
 
@@ -70,11 +70,7 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
     void givenPassportAssessmentExists_whenFindPassportIsInvoked_thenReturnsPassportAssessment() throws Exception {
         LocalDateTime localDateTime = LocalDateTime.of(2026, 3, 2, 15, 51, 12, 932911);
 
-        DeclaredBenefit declaredBenefit = new DeclaredBenefit()
-                .withBenefitType(BenefitType.ESA)
-                .withBenefitRecipient(BenefitRecipient.APPLICANT)
-                .withLastSignOnDate(localDateTime)
-                .withLegacyPartnerId(456);
+        DeclaredBenefit declaredBenefit = TestDataBuilder.buildDeclaredBenefit();
 
         ApiGetPassportedAssessmentResponse response = new ApiGetPassportedAssessmentResponse()
                 .withLegacyAssessmentId(123)
@@ -93,7 +89,7 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
                         .withHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON.toString())
                         .withBody(objectMapper.writeValueAsString(response))));
 
-        mvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + response.getLegacyAssessmentId())
+        mockMvc.perform(MockMvcRequestBuilders.get(FIND_ENDPOINT + response.getLegacyAssessmentId())
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
@@ -121,6 +117,36 @@ public class PassportIntegrationTest extends WiremockIntegrationTest {
                 .andExpect(jsonPath("$.decisionReason")
                         .value(response.getDecisionReason().getConfirmation()))
                 .andExpect(jsonPath("$.notes").value(response.getNotes()));
+    }
+
+    @Test
+    void givenPassportAssessmentRequest_whenCreatePassportIsInvoked_thenReturnsPassportAssessment() throws Exception {
+        var request = TestDataBuilder.buildValidPopulatedCreatePassportedAssessmentRequest();
+        var maatResponse = TestDataBuilder.buildValidPopulatedCreatePassportedAssessmentResponse();
+
+        wiremock.stubFor(post(urlEqualTo(MAAT_API_PASSPORT_URL))
+                .willReturn(WireMock.ok()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON.toString())
+                        .withBody(objectMapper.writeValueAsString(maatResponse))));
+
+        mockMvc.perform(MockMvcRequestBuilders.post(PASSPORT_ENDPOINT)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON));
+    }
+
+    @Test
+    void givenPassportAssessmentRequest_whenCreatePassportIsInvokedAndLegacyFails_thenReturnedError() throws Exception {
+        var request = TestDataBuilder.buildValidPopulatedCreatePassportedAssessmentRequest();
+        wiremock.stubFor(post(urlEqualTo(MAAT_API_PASSPORT_URL)).willReturn(WireMock.serverError()));
+        mockMvc.perform(MockMvcRequestBuilders.post(PASSPORT_ENDPOINT)
+                        .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is5xxServerError())
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON));
     }
 
     private void stubForOAuth() throws JsonProcessingException {

@@ -1,9 +1,12 @@
 package uk.gov.justice.laa.crime.assessmentservice.passport.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa.crime.assessmentservice.passport.service.PassportService;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentRequest;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentResponse;
 import uk.gov.justice.laa.crime.common.model.passported.ApiGetPassportedAssessmentResponse;
 
 import java.util.Optional;
@@ -11,6 +14,8 @@ import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,8 +30,12 @@ public class PassportController implements PassportApi {
     @GetMapping(path = "/lookup-by-legacy-id/{legacyId}")
     public ResponseEntity<ApiGetPassportedAssessmentResponse> find(@PathVariable int legacyId) {
         Optional<ApiGetPassportedAssessmentResponse> response = passportService.find(legacyId);
+        return ResponseEntity.of(response);
+    }
 
-        return response.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PostMapping
+    public ResponseEntity<ApiCreatePassportedAssessmentResponse> create(
+            @Valid @RequestBody ApiCreatePassportedAssessmentRequest request) {
+        return ResponseEntity.ok(passportService.create(request));
     }
 }

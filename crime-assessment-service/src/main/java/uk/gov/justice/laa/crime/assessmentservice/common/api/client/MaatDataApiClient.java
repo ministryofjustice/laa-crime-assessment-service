@@ -3,6 +3,8 @@ package uk.gov.justice.laa.crime.assessmentservice.common.api.client;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiGetIojAppealResponse;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentRequest;
+import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentResponse;
 import uk.gov.justice.laa.crime.common.model.passported.ApiGetPassportedAssessmentResponse;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,4 +28,8 @@ public interface MaatDataApiClient {
 
     @GetExchange("/api/internal/v2/assessment/passport-assessments/{legacyId}")
     ApiGetPassportedAssessmentResponse getPassportAssessment(@PathVariable int legacyId);
+
+    @PostExchange("/api/internal/v2/assessment/passport-assessments")
+    ApiCreatePassportedAssessmentResponse createPassportAssessment(
+            @RequestBody ApiCreatePassportedAssessmentRequest request);
 }
