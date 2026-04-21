@@ -1,5 +1,6 @@
 package uk.gov.justice.laa.crime.assessmentservice.iojappeal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -20,12 +21,15 @@ import uk.gov.justice.laa.crime.common.model.ioj.ApiRollbackIojAppealResponse;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppealMetadata;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 import uk.gov.justice.laa.crime.error.ProblemDetailError;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
+import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -127,19 +131,27 @@ class IojAppealControllerTest {
         request.setIojAppealMetadata(new IojAppealMetadata());
         request.setIojAppeal(new IojAppeal());
 
-        mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
+        var result = mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
-                .andExpect(jsonPath("$.instance").value("/api/internal/v1/ioj-appeals"))
-                .andExpect(jsonPath("$.errors").exists())
-                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
-                .andExpect(jsonPath("$.errors.errors").isArray())
-                .andExpect(jsonPath("$.errors.errors.length()").value(Matchers.greaterThan(0)));
+                .andReturn();
+        var errorResponse =
+                ProblemDetailUtil.parseProblemDetailJson(result.getResponse().getContentAsString());
+        var optionalOfExtension = ProblemDetailUtil.getErrorExtension(errorResponse);
+        assertThat(optionalOfExtension).isPresent();
+        var extension = optionalOfExtension.get();
+        List<ErrorMessage> errorMessages = extension.errors();
 
+        assertThat(errorResponse)
+                .hasFieldOrPropertyWithValue("title", HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .hasFieldOrPropertyWithValue("status", 400)
+                .hasFieldOrPropertyWithValue("detail", ProblemDetailError.VALIDATION_FAILURE.defaultDetail())
+                .hasFieldOrPropertyWithValue("instance", new URI("/api/internal/v1/ioj-appeals"));
+
+        assertThat(extension).hasFieldOrPropertyWithValue("code", ProblemDetailError.VALIDATION_FAILURE.code());
+
+        assertThat(errorMessages).isNotNull().hasSizeGreaterThan(0);
         verifyNoInteractions(iojAppealOrchestrationService);
     }
 
@@ -148,19 +160,30 @@ class IojAppealControllerTest {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         request.getIojAppeal().setAppealAssessor(IojAppealAssessor.CASEWORKER);
 
-        mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
+        var result = mockMvc.perform(MockMvcRequestBuilders.post(IOJ_APPEALS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value(ProblemDetailError.VALIDATION_FAILURE.defaultDetail()))
-                .andExpect(jsonPath("$.errors.code").value(ProblemDetailError.VALIDATION_FAILURE.code()))
-                .andExpect(jsonPath("$.errors.errors").isArray())
-                .andExpect(jsonPath(
-                        "$.errors.errors[?(@.field == '%s')].message"
-                                .formatted(ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR.getName()),
-                        Matchers.hasItem(ERROR_INCORRECT_COMBINATION)));
+                .andReturn();
+
+        var errorResponse =
+                ProblemDetailUtil.parseProblemDetailJson(result.getResponse().getContentAsString());
+        var optionalOfExtension = ProblemDetailUtil.getErrorExtension(errorResponse);
+        assertThat(optionalOfExtension).isPresent();
+        var extension = optionalOfExtension.get();
+        List<ErrorMessage> errorMessages = extension.errors();
+
+        assertThat(errorResponse)
+                .hasFieldOrPropertyWithValue("title", HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .hasFieldOrPropertyWithValue("status", 400)
+                .hasFieldOrPropertyWithValue("detail", ProblemDetailError.VALIDATION_FAILURE.defaultDetail())
+                .hasFieldOrPropertyWithValue("instance", new URI("/api/internal/v1/ioj-appeals"));
+
+        assertThat(extension).hasFieldOrPropertyWithValue("code", ProblemDetailError.VALIDATION_FAILURE.code());
+
+        var expectedErrorMessage = new ErrorMessage(
+                ApiCreateIojAppealRequestFields.APPEAL_ASSESSOR.getName(), ERROR_INCORRECT_COMBINATION);
+        assertThat(errorMessages).isNotNull().hasSizeGreaterThan(0).contains(expectedErrorMessage);
 
         verifyNoInteractions(iojAppealOrchestrationService);
     }
