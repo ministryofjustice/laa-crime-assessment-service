@@ -33,21 +33,25 @@ maatApi:
   baseUrl: http://laa-maat-data-api.laa-maat-data-api-dev.svc.cluster.local
   oauthUrl: https://maat-api-dev.auth.eu-west-2.amazoncognito.com/oauth2/token
 
-# TODO ingress config
 ingress:
   enabled: true
-  environmentName: laa-crime-assessment-service-dev
-  className: default
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "300"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecAuditEngine On
+      SecRuleEngine On
+      SecDefaultAction "phase:2,pass,log,tag:github_team=laa-crime-apps-team,tag:namespace=laa-crime-assessment-service-dev"
+  externalAnnotations: {}
   hosts:
     - host: laa-crime-assessment-service-dev.apps.live.cloud-platform.service.justice.gov.uk
       paths:
         - path: /
           pathType: "Prefix"
   tls: []
+  className: modsec-non-prod
 
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
