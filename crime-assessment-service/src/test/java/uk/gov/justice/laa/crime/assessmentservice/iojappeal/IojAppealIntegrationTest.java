@@ -35,6 +35,7 @@ import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
 import uk.gov.justice.laa.crime.enums.IojAppealDecisionReason;
 import uk.gov.justice.laa.crime.enums.NewWorkReason;
 import uk.gov.justice.laa.crime.tracing.TraceIdHandler;
+import uk.gov.justice.laa.crime.util.ProblemDetailUtil;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -354,13 +355,17 @@ class IojAppealIntegrationTest extends WiremockIntegrationTest {
         var request = TestDataBuilder.buildValidPopulatedCreateIojAppealRequest();
         var initialAppealCount = iojAppealRepository.count();
         wiremock.stubFor(post(urlEqualTo(MAAT_API_APPEAL_URL)).willReturn(WireMock.serverError()));
-        mockMvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL)
+        var result = mockMvc.perform(MockMvcRequestBuilders.post(ENDPOINT_URL)
                         .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is5xxServerError())
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.errors.traceId").value(testTrace));
+                .andReturn();
+        var problemDetails =
+                ProblemDetailUtil.parseProblemDetailJson(result.getResponse().getContentAsString());
+        var extension = ProblemDetailUtil.getErrorExtension(problemDetails);
+        assertThat(extension).isPresent().get().hasFieldOrPropertyWithValue("traceId", testTrace);
         // ensure we've rolled back the DB write
         assertThat(iojAppealRepository.count()).isEqualTo(initialAppealCount + 1);
         assertThat(iojAppealRepository.findAll().getLast().isRolledBack()).isTrue();
