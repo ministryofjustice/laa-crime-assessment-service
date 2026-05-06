@@ -35,6 +35,8 @@ maatApi:
 
 ingress:
   enabled: true
+  environmentName: laa-crime-assessment-service-dev
+  className: modsec-non-prod
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/affinity: "cookie"
@@ -51,7 +53,6 @@ ingress:
         - path: /
           pathType: "Prefix"
   tls: []
-  className: modsec-non-prod
 
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
