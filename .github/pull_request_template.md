@@ -15,7 +15,7 @@ Some checks can be completed after asking for review, but should be done before 
 - [ ] The pull request is not labelled as `WIP/DRAFT`.
 - [ ] The pull request has a title format of `{JIRA ID} - Description`.
 - [ ] A link to the Jira ticket is provided along with a description giving context and rationale for the changes, in the `What` section of the PR.
-- [ ] Github is not reporting any conflicts with the `main` branch.
+- [ ] GitHub is not reporting any conflicts with the `main` branch.
 - [ ] Nothing unexpected is included in the changes, when compared to the `main` branch.
 - [ ] All of the pull request triggered checks (such as Build and Test, CodeQL and Snyk) have passed.
 - [ ] The commit messages have meaningful descriptions.
