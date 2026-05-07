@@ -6,7 +6,10 @@ Describe what you did and why. Feel free to include other information that will 
 
 ## Checklists
 
-Before you ask people to review this PR:
+In general these checks apply to most PRs. There will be exceptions, in these cases make it clear what is different and why.
+e.g. DRAFT PR because you want early feedback, change only warrants a more targeted run of functional tests, etc.
+
+Some checks can be completed after asking for review, but should be done before merging. Consider what checks will make a reviewers job easier.
 
 ### Git housekeeping
 - [ ] The pull request is not labelled as `WIP/DRAFT`.
@@ -20,7 +23,6 @@ Before you ask people to review this PR:
 
 ### Change housekeeping
 - [ ] Relevant areas in the documentation have been updated to reflect the changes. This may include runbooks, alerts, confluence, etc.
-- [ ] There have been no regressions in the [Functional Test Suite](https://github.com/ministryofjustice/laa-crimeapps-maat-functional-tests/actions) when run in the `TEST` environment.
 - [ ] Attach link / screenshot from successful CI run of UI `@smoke` tests for this branch using [ExecuteUiTests workflow][1].
 - [ ] Attach link / screenshot from successful CI run of **ALL** API tests for this branch using [ExecuteApiTests workflow][2].
 
