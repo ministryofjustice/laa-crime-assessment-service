@@ -4,7 +4,6 @@ import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCrea
 import static uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields.APPEAL_REASON;
 
 import lombok.experimental.UtilityClass;
-import uk.gov.justice.laa.crime.assessmentservice.iojappeal.enums.ApiCreateIojAppealRequestFields;
 import uk.gov.justice.laa.crime.common.model.ioj.ApiCreateIojAppealRequest;
 import uk.gov.justice.laa.crime.common.model.ioj.IojAppeal;
 import uk.gov.justice.laa.crime.enums.IojAppealAssessor;
@@ -13,6 +12,7 @@ import uk.gov.justice.laa.crime.error.ErrorMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @UtilityClass
 public class ApiCreateIojAppealRequestValidator {
@@ -23,34 +23,29 @@ public class ApiCreateIojAppealRequestValidator {
 
     public List<ErrorMessage> validateRequest(ApiCreateIojAppealRequest request) {
         var errorList = new ArrayList<ErrorMessage>();
-        validateIoJAppeal(request.getIojAppeal(), errorList);
+        validateAppealReasonType(request.getIojAppeal().getAppealReason()).ifPresent(errorList::add);
+        validateAppealReasonAppealAssessorCombinations(request.getIojAppeal()).ifPresent(errorList::add);
         return errorList;
     }
 
-    void validateIoJAppeal(IojAppeal appeal, List<ErrorMessage> errorList) {
-        validateAppealReasonType(appeal.getAppealReason(), errorList);
-        validateAppealReasonAppealAssessorCombinations(appeal, errorList);
-    }
-
     // check the appeal reason is of type HARDIOJ
-    private void validateAppealReasonType(NewWorkReason appealReason, List<ErrorMessage> errorList) {
+    private Optional<ErrorMessage> validateAppealReasonType(NewWorkReason appealReason) {
         if (appealReason != null && !APPEAL_REASON_HARDIOJ.equalsIgnoreCase(appealReason.getType())) {
-            addErrorMessage(APPEAL_REASON, ERROR_APPEAL_REASON_IS_INVALID, errorList);
+            return Optional.of(new ErrorMessage(APPEAL_REASON.getName(), ERROR_APPEAL_REASON_IS_INVALID));
         }
+
+        return Optional.empty();
     }
 
-    private void validateAppealReasonAppealAssessorCombinations(IojAppeal appeal, List<ErrorMessage> errorList) {
+    private Optional<ErrorMessage> validateAppealReasonAppealAssessorCombinations(IojAppeal appeal) {
         NewWorkReason reason = appeal.getAppealReason();
         IojAppealAssessor assessor = appeal.getAppealAssessor();
         // Null check Assessor as != includes nulls.
         if ((NewWorkReason.NEW.equals(reason) && !IojAppealAssessor.CASEWORKER.equals(assessor))
                 || (NewWorkReason.JR.equals(reason) && !IojAppealAssessor.JUDGE.equals(assessor))) {
-            addErrorMessage(APPEAL_ASSESSOR, ERROR_INCORRECT_COMBINATION, errorList);
+            return Optional.of(new ErrorMessage(APPEAL_ASSESSOR.getName(), ERROR_INCORRECT_COMBINATION));
         }
-    }
 
-    private void addErrorMessage(
-            ApiCreateIojAppealRequestFields fieldName, String errorMessage, List<ErrorMessage> errorList) {
-        errorList.add(new ErrorMessage(fieldName.getName(), errorMessage));
+        return Optional.empty();
     }
 }
