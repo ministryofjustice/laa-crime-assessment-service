@@ -4,12 +4,14 @@ on:
   pull_request:
     branches: [ main ]
 
+
+permissions:
+  contents: read
+
 jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         id: checkout
