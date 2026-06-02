@@ -3,12 +3,12 @@ plugins {
     id 'jacoco'
     id "com.diffplug.spotless" version "8.0.0"
     id 'com.adarshr.test-logger' version '4.0.0'
-    id 'org.springframework.boot' version '3.5.8'
+    id 'org.springframework.boot' version '3.5.14'
     id "com.github.ben-manes.versions" version "0.52.0"
 }
 
 // springboot tomcat version overide, can be removed when springboot is 3.5.15 or 4+
-// ext['tomcat.version'] = '10.1.55'
+ext['tomcat.version'] = '10.1.55'
 
 group = "uk.gov.justice.laa.crime"
 
@@ -32,7 +32,7 @@ def versions = [
 repositories {
     mavenCentral()
     maven {
-        url "https://central.sonatype.com/repository/maven-snapshots/"
+        url = "https://central.sonatype.com/repository/maven-snapshots/"
     }
 }
 
