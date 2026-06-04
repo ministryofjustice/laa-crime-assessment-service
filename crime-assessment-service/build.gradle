@@ -25,7 +25,7 @@ def versions = [
         mapstruct                   : "1.6.3",
         crimeCommonsClasses         : "4.35.0",
         crimeCommonsModSchemas      : "1.51.1",
-        lombok                      : "1.18.42",
+        lombok                      : "1.18.46",
         springdoc                   : "2.8.16"
 ]
 
