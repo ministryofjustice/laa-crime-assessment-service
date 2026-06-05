@@ -4,11 +4,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.justice.laa.crime.assessmentservice.common.api.exception.CrimeValidationException;
 import uk.gov.justice.laa.crime.assessmentservice.passport.service.PassportService;
+import uk.gov.justice.laa.crime.assessmentservice.passport.validator.ApiCreatePassportedAssessmentRequestValidator;
 import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentRequest;
 import uk.gov.justice.laa.crime.common.model.passported.ApiCreatePassportedAssessmentResponse;
 import uk.gov.justice.laa.crime.common.model.passported.ApiGetPassportedAssessmentResponse;
+import uk.gov.justice.laa.crime.error.ErrorMessage;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
@@ -36,6 +40,10 @@ public class PassportController implements PassportApi {
     @PostMapping
     public ResponseEntity<ApiCreatePassportedAssessmentResponse> create(
             @Valid @RequestBody ApiCreatePassportedAssessmentRequest request) {
+        List<ErrorMessage> validationErrors = ApiCreatePassportedAssessmentRequestValidator.validateRequest(request);
+        if (!validationErrors.isEmpty()) {
+            throw new CrimeValidationException(validationErrors);
+        }
         return ResponseEntity.ok(passportService.create(request));
     }
 }
