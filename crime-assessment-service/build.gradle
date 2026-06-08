@@ -19,7 +19,7 @@ java {
 }
 
 def versions = [
-        modulith                    : "1.4.7",
+        modulith                    : "2.0.6",
         sentry                      : "8.31.0",
         resilience4j                : "2.3.0",
         mapstruct                   : "1.6.3",
