@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class ApiCreatePassportedAssessmentRequestValidatorTest {
+    // Arguments of: benefitType, lastSignOnDate, isValidCombination
     private static Stream<Arguments> benefitTypeArguments() {
         return Stream.of(
                 Arguments.of(BenefitType.JSA, null, false),

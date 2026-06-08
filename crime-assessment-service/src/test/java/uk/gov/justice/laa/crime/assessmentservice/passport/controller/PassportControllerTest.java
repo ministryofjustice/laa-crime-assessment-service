@@ -71,7 +71,7 @@ public class PassportControllerTest {
     }
 
     @Test
-    void givenCustomValidationFailure_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
+    void givenNullSignOnDateForJSA_whenCreateIsInvoked_thenReturnsBadRequest() throws Exception {
         var request = TestDataBuilder.buildValidPopulatedCreatePassportedAssessmentRequest();
         request.getPassportedAssessment().getDeclaredBenefit().setBenefitType(BenefitType.JSA);
         request.getPassportedAssessment().getDeclaredBenefit().setLastSignOnDate(null);
@@ -99,7 +99,7 @@ public class PassportControllerTest {
 
         var expectedErrorMessage = new ErrorMessage(
                 ApiCreatePassportedAssessmentRequestFields.LAST_SIGN_ON_DATE.getName(), ERROR_LAST_SIGN_ON_DATE_EMPTY);
-        assertThat(errorMessages).isNotNull().hasSizeGreaterThan(0).contains(expectedErrorMessage);
+        assertThat(errorMessages).isNotNull().hasSize(1).contains(expectedErrorMessage);
 
         verifyNoInteractions(passportService);
     }

@@ -19,8 +19,10 @@ public class ApiCreatePassportedAssessmentRequestValidator {
 
     public List<ErrorMessage> validateRequest(ApiCreatePassportedAssessmentRequest request) {
         var errorList = new ArrayList<ErrorMessage>();
-        validateLastSignOnDate(request.getPassportedAssessment().getDeclaredBenefit())
-                .ifPresent(errorList::add);
+        DeclaredBenefit declaredBenefit = request.getPassportedAssessment().getDeclaredBenefit();
+        if (declaredBenefit != null) {
+            validateLastSignOnDate(declaredBenefit).ifPresent(errorList::add);
+        }
         return errorList;
     }
 
