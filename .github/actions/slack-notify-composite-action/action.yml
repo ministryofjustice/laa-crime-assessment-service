@@ -1,0 +1,5 @@
+name: slack-notify-composite-action
+author: nigel.pain
+description: slack-notify-composite-action
+runs:
+  using:
